@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Assistant',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{color:var(--accent-ink)}
+.msr{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;line-height:1;-webkit-font-feature-settings:'liga';font-feature-settings:'liga';display:inline-block;vertical-align:middle}
+[data-theme="light"],[data-theme="system"]{
+--bg:#f3f5f4;--surface:#ffffff;--surface-2:#eef2f0;--surface-3:#e4eae7;
+--line:rgba(20,45,42,.11);--ink:#1b2a28;--ink-2:#3a4a47;--mut:#6a7a77;
+--accent:#3f7d9e;--accent-ink:#2b5f7f;--accent-soft:#e7eff4;
+--pos:#3f8f6d;--pos-ink:#2c6f52;--pos-soft:#e6f1eb;
+--near:#a9772a;--near-soft:#f5ecdb;--warn:#b5623a;--warn-soft:#f5e6dd;
+--sh-sm:0 1px 2px rgba(20,40,38,.07);--sh-md:0 4px 18px rgba(20,40,38,.09);--sh-lg:0 16px 46px rgba(20,40,38,.14);}
+[data-theme="dark"]{
+--bg:#0e1513;--surface:#161f1d;--surface-2:#1f2a27;--surface-3:#293632;
+--line:rgba(255,255,255,.11);--ink:#eef3f1;--ink-2:#c6d2ce;--mut:#8a9f9a;
+--accent:#66a9cb;--accent-ink:#9fcadd;--accent-soft:#1a2e38;
+--pos:#5cb089;--pos-ink:#8fceae;--pos-soft:#152b22;
+--near:#d3a24f;--near-soft:#312a19;--warn:#d0855b;--warn-soft:#33231b;
+--sh-sm:0 1px 2px rgba(0,0,0,.4);--sh-md:0 4px 18px rgba(0,0,0,.45);--sh-lg:0 16px 46px rgba(0,0,0,.55);}
+@media (prefers-color-scheme:dark){[data-theme="system"]{
+--bg:#0e1513;--surface:#161f1d;--surface-2:#1f2a27;--surface-3:#293632;
+--line:rgba(255,255,255,.11);--ink:#eef3f1;--ink-2:#c6d2ce;--mut:#8a9f9a;
+--accent:#66a9cb;--accent-ink:#9fcadd;--accent-soft:#1a2e38;
+--pos:#5cb089;--pos-ink:#8fceae;--pos-soft:#152b22;
+--near:#d3a24f;--near-soft:#312a19;--warn:#d0855b;--warn-soft:#33231b;
+--sh-sm:0 1px 2px rgba(0,0,0,.4);--sh-md:0 4px 18px rgba(0,0,0,.45);--sh-lg:0 16px 46px rgba(0,0,0,.55);}}
+@keyframes sk{0%,100%{opacity:.45}50%{opacity:.85}}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+
+<div dir="rtl" data-theme="{{ theme }}" style="background:var(--bg);color:var(--ink);min-height:100vh;font-family:'Assistant',sans-serif">
+
+  <!-- ===== TOP BAR ===== -->
+  <div style="position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)">
+    <div style="max-width:1360px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:19px;color:#fff">account_balance_wallet</span></div>
+        <div><div style="font-weight:800;font-size:15px;line-height:1">כספי הבית</div><div style="font-size:11px;color:var(--mut)">אורן ודניאל · מערכת עיצוב</div></div>
+      </div>
+      <div style="flex:1"></div>
+      <nav style="display:flex;gap:2px;flex-wrap:wrap">
+        <a href="#foundations" style="font-size:12.5px;font-weight:600;color:var(--mut);padding:6px 11px;border-radius:8px">יסודות</a>
+        <a href="#components" style="font-size:12.5px;font-weight:600;color:var(--mut);padding:6px 11px;border-radius:8px">רכיבים</a>
+        <a href="#screens" style="font-size:12.5px;font-weight:600;color:var(--mut);padding:6px 11px;border-radius:8px">מסכים</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:3px">
+        <sc-for list="{{ tset }}" as="t" hint-placeholder-count="3">
+          <button data-tk="{{ t.key }}" onClick="{{ setThemeEv }}" title="{{ t.label }}" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px;background:{{ t.bg }};color:{{ t.fg }};box-shadow:{{ t.sh }}"><span class="msr" style="font-size:16px">{{ t.icon }}</span>{{ t.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1360px;margin:0 auto;padding:28px 24px 80px">
+
+    <!-- ===== INTRO ===== -->
+    <div style="margin-bottom:36px">
+      <div style="font-size:12px;font-weight:700;color:var(--accent-ink);letter-spacing:.04em;margin-bottom:8px">CALM FINANCIAL · כיוון נבחר</div>
+      <h1 style="margin:0 0 10px;font-size:30px;font-weight:800;letter-spacing:-.01em">מערכת עיצוב ומסכי MVP</h1>
+      <p style="margin:0;max-width:720px;font-size:15px;line-height:1.6;color:var(--ink-2)">שפה חזותית רגועה ואמינה, RTL־first בעברית, עם מצב בהיר (ראשי), כהה ומערכת. אותה שפה, פריסה, מרווחים, טיפוגרפיה ורכיבים בשני המצבים — משתנים רק צבעים סמנטיים ורמות הבלטה. סטטוס פיננסי לעולם לא נמסר בצבע בלבד: תמיד אייקון + טקסט לצד הצבע.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <span style="font-size:12px;font-weight:600;color:var(--mut);background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:6px 13px">₪ שקל · RTL</span>
+        <span style="font-size:12px;font-weight:600;color:var(--mut);background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:6px 13px">נגישות AA</span>
+        <span style="font-size:12px;font-weight:600;color:var(--mut);background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:6px 13px">דסקטופ + מובייל</span>
+        <span style="font-size:12px;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);border-radius:99px;padding:6px 13px">↑ החליפו מצב תצוגה למעלה לתצוגה מקדימה</span>
+      </div>
+    </div>
+
+    <!-- ===== FOUNDATIONS ===== -->
+    <section id="foundations" style="scroll-margin-top:80px;margin-bottom:44px">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:12px"><span style="font-size:11px;font-weight:800;color:var(--mut)">01</span><h2 style="margin:0;font-size:20px;font-weight:800">יסודות</h2></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px">צבעים סמנטיים</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+            <sc-for list="{{ tokens }}" as="c" hint-placeholder-count="10">
+              <div style="display:flex;align-items:center;gap:9px">
+                <span style="width:34px;height:34px;border-radius:9px;background:var({{ c.v }});border:1px solid var(--line);flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.02)"></span>
+                <div style="min-width:0"><div style="font-size:12.5px;font-weight:600">{{ c.n }}</div><div style="font-size:10.5px;color:var(--mut);font-family:ui-monospace,monospace">{{ c.v }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px">טיפוגרפיה · Assistant</div>
+          <sc-for list="{{ type }}" as="t" hint-placeholder-count="6">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line)">
+              <span style="font-weight:{{ t.w }};font-size:{{ t.s }};line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.sample }}</span>
+              <span style="font-size:11px;color:var(--mut);font-family:ui-monospace,monospace;white-space:nowrap">{{ t.n }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px">מרווח · רשת 4px</div>
+          <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:18px">
+            <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="7">
+              <div style="text-align:center"><div style="width:{{ s.px }};height:{{ s.px }};background:var(--accent-soft);border:1px solid var(--accent);border-radius:4px"></div><div style="font-size:10px;color:var(--mut);margin-top:4px">{{ s.n }}</div></div>
+            </sc-for>
+          </div>
+          <div style="font-weight:700;font-size:14px;margin-bottom:12px">רדיוס</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <sc-for list="{{ radii }}" as="r" hint-placeholder-count="5">
+              <div style="text-align:center"><div style="width:46px;height:40px;background:var(--surface-2);border:1px solid var(--line);border-radius:{{ r.px }}"></div><div style="font-size:10px;color:var(--mut);margin-top:4px">{{ r.n }}</div></div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:14px">הבלטה · Elevation</div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:80px;text-align:center"><div style="height:56px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-sm)"></div><div style="font-size:11px;color:var(--mut);margin-top:7px">sm · שורות</div></div>
+            <div style="flex:1;min-width:80px;text-align:center"><div style="height:56px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-md)"></div><div style="font-size:11px;color:var(--mut);margin-top:7px">md · כרטיסים</div></div>
+            <div style="flex:1;min-width:80px;text-align:center"><div style="height:56px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-lg)"></div><div style="font-size:11px;color:var(--mut);margin-top:7px">lg · חלוניות</div></div>
+          </div>
+          <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:var(--mut)">במצב כהה ההבלטה נשענת על משטח בהיר יותר וגבול עדין, עם צללים רכים בלבד.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== COMPONENTS ===== -->
+    <section id="components" style="scroll-margin-top:80px;margin-bottom:44px">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:12px"><span style="font-size:11px;font-weight:800;color:var(--mut)">02</span><h2 style="margin:0;font-size:20px;font-weight:800">מלאי רכיבים</h2></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start">
+
+        <!-- Buttons -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:14px">כפתורים</div>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;align-items:center">
+            <button style="all:unset;cursor:pointer;background:var(--accent);color:#fff;border-radius:10px;padding:9px 16px;font-weight:700;font-size:13px">שמירה</button>
+            <button style="all:unset;cursor:pointer;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 16px;font-weight:700;font-size:13px">ביטול</button>
+            <button style="all:unset;cursor:pointer;color:var(--accent-ink);border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px">קישור</button>
+            <button style="all:unset;cursor:pointer;background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:9px 16px;font-weight:700;font-size:13px">מחיקה</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:11px">
+            <button style="all:unset;cursor:pointer;background:var(--accent);color:#fff;border-radius:8px;padding:6px 12px;font-weight:700;font-size:12px">קטן</button>
+            <button style="all:unset;cursor:pointer;width:36px;height:36px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:19px;color:var(--ink-2)">add</span></button>
+            <button style="all:unset;background:var(--surface-2);color:var(--mut);border:1px solid var(--line);border-radius:10px;padding:9px 16px;font-weight:700;font-size:13px;opacity:.5">מושבת</button>
+          </div>
+        </div>
+
+        <!-- Inputs -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:14px">שדות קלט</div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--mut);margin-bottom:5px">שם קטגוריה</label>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:12px"><span class="msr" style="font-size:18px;color:var(--mut)">label</span><span style="font-size:13.5px;color:var(--ink)">קניות ומזון</span></div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--mut);margin-bottom:5px">סכום</label>
+          <div style="display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--accent);border-radius:10px;padding:9px 12px;margin-bottom:12px"><span style="font-size:14px;color:var(--mut)">₪</span><span style="font-size:14px;font-weight:700;color:var(--ink)">3,500</span><span style="width:1px;height:16px;background:var(--accent);margin-inline-start:1px;animation:sk 1s infinite"></span></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:3px"><span style="font-size:12px;font-weight:700;padding:5px 12px;background:var(--surface);border-radius:6px;box-shadow:var(--sh-sm)">חודשי</span><span style="font-size:12px;font-weight:600;padding:5px 12px;color:var(--mut)">חד־פעמי</span></div>
+            <div style="margin-inline-start:auto;display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:var(--mut)">התראה</span><span style="width:38px;height:22px;border-radius:99px;background:var(--accent);position:relative"><span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:99px;background:#fff"></span></span></div>
+          </div>
+        </div>
+
+        <!-- Tabs + filters -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:14px">טאבים ומסננים</div>
+          <div style="display:flex;gap:18px;border-bottom:1px solid var(--line);margin-bottom:14px">
+            <span style="font-size:13px;font-weight:700;color:var(--ink);padding-bottom:9px;border-bottom:2px solid var(--accent)">הכול</span>
+            <span style="font-size:13px;font-weight:600;color:var(--mut);padding-bottom:9px">הוצאות</span>
+            <span style="font-size:13px;font-weight:600;color:var(--mut);padding-bottom:9px">הכנסות</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;background:var(--accent-soft);color:var(--accent-ink);border-radius:99px;padding:5px 11px">יולי 2025<span class="msr" style="font-size:15px">expand_more</span></span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:5px 11px">קטגוריה: מזון<span class="msr" style="font-size:15px;color:var(--mut)">close</span></span>
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:5px 11px"><span class="msr" style="font-size:15px;color:var(--mut)">tune</span>מסננים</span>
+          </div>
+        </div>
+
+        <!-- Status badges + alerts -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:14px">תגי סטטוס והתראות</div>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--pos-ink);background:var(--pos-soft);border-radius:6px;padding:3px 8px"><span class="msr" style="font-size:13px">check_circle</span>מסונכרן</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--mut);background:var(--surface-2);border-radius:6px;padding:3px 8px"><span class="msr" style="font-size:13px;animation:spin 1.2s linear infinite">progress_activity</span>מסנכרן</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:3px 8px"><span class="msr" style="font-size:13px">error</span>שגיאה</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--near);background:var(--near-soft);border-radius:6px;padding:3px 8px"><span class="msr" style="font-size:13px">warning</span>חריגה</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:6px;padding:3px 8px">צפוי</span>
+          </div>
+          <div style="display:flex;gap:9px;align-items:flex-start;background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);border-radius:10px;padding:11px 13px"><span class="msr" style="font-size:18px;color:var(--warn);margin-top:1px">report</span><div style="font-size:12.5px;line-height:1.45;color:var(--ink)"><b>חריגה בקטגוריית ביגוד</b> — ₪140 מעל התקציב החודשי.</div></div>
+        </div>
+
+        <!-- Category rings -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:6px">טבעות קטגוריה</div>
+          <div style="font-size:11.5px;color:var(--mut);margin-bottom:12px">תקין · קרוב לגבול · חריגה — סטטוס באייקון וטקסט, לא בצבע בלבד</div>
+          <div style="display:flex;justify-content:space-around">
+            <sc-for list="{{ ringDemo }}" as="item" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="position:relative;width:82px;height:82px">
+                  <svg viewBox="0 0 82 82" style="width:82px;height:82px;transform:rotate(-90deg) scaleX(-1)"><circle cx="41" cy="41" r="34" fill="none" stroke-width="7" style="stroke:var(--surface-2)"></circle><circle cx="41" cy="41" r="34" fill="none" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ item.ringPct }} 100" style="stroke:var({{ item.ringColorVar }})"></circle></svg>
+                  <span style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:99px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:13px;color:var(--mut)">{{ item.icon }}</span></span>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:6px"><span style="font-size:12.5px;font-weight:800">{{ item.centerAmt }}</span></div>
+                </div>
+                <div style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var({{ item.ringColorVar }})"><span class="msr" style="font-size:12px">{{ item.statusIcon }}</span>{{ item.statusLabel }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- Transaction rows -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:10px">שורות תנועה</div>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)"><span style="width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--mut)">shopping_cart</span></span><div style="flex:1"><div style="font-weight:600;font-size:13px">שופרסל דיל</div><div style="font-size:11.5px;color:var(--mut)">קניות ומזון · היום</div></div><span style="font-weight:700;font-size:13.5px">₪486</span></div>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)"><span style="width:34px;height:34px;border-radius:10px;background:var(--pos-soft);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--pos-ink)">south_west</span></span><div style="flex:1"><div style="font-weight:600;font-size:13px">העברת שכר — דניאל</div><div style="font-size:11.5px;color:var(--mut)">הכנסה · אתמול</div></div><span style="font-weight:700;font-size:13.5px;color:var(--pos-ink)">+₪18,200</span></div>
+          <div style="display:flex;align-items:center;gap:11px;padding:9px 0"><span style="width:34px;height:34px;border-radius:10px;background:var(--warn-soft);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--warn)">help</span></span><div style="flex:1"><div style="font-weight:600;font-size:13px">חיוב לא מזוהה</div><div style="font-size:11.5px;color:var(--warn)">דורש בדיקה</div></div><span style="font-weight:700;font-size:13.5px">₪317</span></div>
+        </div>
+
+        <!-- Cards + nav -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:12px">כרטיסים וניווט</div>
+          <div style="background:var(--accent-soft);border-radius:12px;padding:13px 15px;margin-bottom:12px"><div style="font-size:11.5px;color:var(--accent-ink);font-weight:600">יתרה חזויה לסוף החודש</div><div style="font-size:22px;font-weight:800">₪28,850</div></div>
+          <div style="display:flex;gap:8px">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent-ink);border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:700"><span class="msr" style="font-size:17px">space_dashboard</span>לוח חודשי</div>
+            <div style="display:inline-flex;align-items:center;gap:8px;color:var(--mut);border-radius:10px;padding:8px 12px;font-size:12.5px;font-weight:600"><span class="msr" style="font-size:17px">receipt_long</span>תנועות</div>
+          </div>
+        </div>
+
+        <!-- Bottom sheet / modal -->
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-md);padding:18px 20px">
+          <div style="font-weight:700;font-size:13.5px;margin-bottom:12px">תבניות חלונית ומגירה</div>
+          <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden">
+            <div style="height:26px;background:var(--surface-2);display:grid;place-items:center"><span style="width:34px;height:4px;border-radius:99px;background:var(--line)"></span></div>
+            <div style="padding:12px 14px"><div style="font-weight:700;font-size:13px;margin-bottom:3px">פירוט קטגוריה</div><div style="font-size:11.5px;color:var(--mut);margin-bottom:10px">מגירה תחתונה במובייל · חלונית מרכזית בדסקטופ</div><button style="all:unset;cursor:pointer;background:var(--accent);color:#fff;border-radius:8px;padding:7px 14px;font-weight:700;font-size:12px">פעולה ראשית</button></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== SCREENS ===== -->
+    <section id="screens" style="scroll-margin-top:80px">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px;border-bottom:1px solid var(--line);padding-bottom:12px"><span style="font-size:11px;font-weight:800;color:var(--mut)">03</span><h2 style="margin:0;font-size:20px;font-weight:800">מסכי MVP</h2></div>
+      <p style="font-size:12.5px;color:var(--mut);margin:10px 0 24px">כל מסך בדסקטופ ובמובייל. ניווט דסקטופ: סרגל צד ימני קבוע. ניווט מובייל: סרגל תחתון + "עוד". מצבי ריק / טעינה / שגיאה מסומנים במסכים הרלוונטיים.</p>
+      <div style="display:flex;flex-direction:column;gap:40px">
+        <!-- ==================== SCREEN 1 · DASHBOARD ==================== -->
+        <div id="s-dashboard" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">1</span><h3 style="margin:0;font-size:16px;font-weight:800">לוח חודשי</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">מבט־על מהיר וממוקד פעולה: יתרה חזויה, מאזן, טבעות קטגוריה, תנועות, תשלומים צפויים ותובנות.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+
+            <!-- DESKTOP -->
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.dashboard }}" as="n" hint-placeholder-count="10">
+                    <div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div>
+                  </sc-for>
+                  <div style="flex:1"></div>
+                  <div style="display:flex;align-items:center;gap:9px;padding:9px;border-radius:10px;background:var(--surface);border:1px solid var(--line)"><div style="width:28px;height:28px;border-radius:99px;background:#cdd9d5;display:grid;place-items:center;font-size:12px;font-weight:700;color:#456">א</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700">אורן</div><div style="font-size:10px;color:var(--mut)">חשבון פרימיום</div></div><span class="msr" style="font-size:17px;color:var(--mut)">unfold_more</span></div>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)">
+                    <div style="display:flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:5px 6px 5px 12px"><span class="msr" style="font-size:17px;color:var(--mut)">chevron_right</span><span style="font-weight:700;font-size:12.5px">יולי 2025</span><span class="msr" style="font-size:17px;color:var(--mut)">chevron_left</span></div>
+                    <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--pos-ink);background:var(--pos-soft);border-radius:99px;padding:5px 10px"><span class="msr" style="font-size:14px">check_circle</span>מסונכרן · לפני 6 ד׳</span>
+                    <div style="flex:1"></div>
+                    <button style="all:unset;cursor:pointer;width:34px;height:34px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--mut)">search</span></button>
+                    <button style="all:unset;cursor:pointer;position:relative;width:34px;height:34px;border-radius:9px;background:var(--surface-2);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--mut)">notifications</span><span style="position:absolute;top:6px;left:7px;width:7px;height:7px;border-radius:99px;background:var(--warn);border:1.5px solid var(--surface)"></span></button>
+                  </header>
+                  <div style="padding:16px 18px;background:var(--bg)">
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px">
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px"><div style="font-size:11.5px;color:var(--mut);font-weight:600;margin-bottom:6px">הכנסה צפויה</div><div style="font-size:20px;font-weight:800">₪39,600</div></div>
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px"><div style="font-size:11.5px;color:var(--mut);font-weight:600;margin-bottom:6px">הוצא בפועל</div><div style="font-size:20px;font-weight:800">₪18,400</div></div>
+                      <div style="background:var(--surface);border:1px dashed color-mix(in srgb,var(--mut) 45%,transparent);border-radius:12px;padding:12px 13px"><div style="font-size:11.5px;color:var(--mut);font-weight:600;margin-bottom:6px">נותרו צפויות</div><div style="font-size:20px;font-weight:800">₪15,600</div></div>
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 13px"><div style="font-size:11.5px;color:var(--mut);font-weight:600;margin-bottom:6px">יתרה חזויה</div><div style="font-size:20px;font-weight:800">₪28,850</div></div>
+                      <div style="background:var(--pos-soft);border:1px solid color-mix(in srgb,var(--pos) 28%,transparent);border-radius:12px;padding:12px 13px"><div style="font-size:11.5px;color:var(--pos-ink);font-weight:700;margin-bottom:6px">מאזן החודש</div><div style="display:flex;align-items:center;gap:4px"><span class="msr" style="font-size:18px;color:var(--pos-ink)">arrow_upward</span><span style="font-size:20px;font-weight:800;color:var(--pos-ink)">₪5,600</span></div></div>
+                    </div>
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 15px;margin-bottom:12px">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><span style="font-weight:700;font-size:13px">תזרים החודש · מתוך ₪39,600</span><div style="display:flex;gap:13px;font-size:11px;font-weight:600"><span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;background:var(--accent)"></span>הוצא</span><span style="display:flex;align-items:center;gap:4px;color:var(--mut)"><span style="width:9px;height:9px;border-radius:2px;border:1px dashed var(--mut)"></span>צפוי</span><span style="display:flex;align-items:center;gap:4px;color:var(--pos-ink)"><span style="width:9px;height:9px;border-radius:2px;background:var(--pos)"></span>עודף</span></div></div>
+                      <div style="display:flex;height:14px;border-radius:99px;overflow:hidden;gap:2px;background:var(--surface-2)"><div style="width:46.5%;background:var(--accent)"></div><div style="width:39.4%;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--mut) 30%,transparent) 0 3px,transparent 3px 7px)"></div><div style="width:14.1%;background:color-mix(in srgb,var(--pos) 55%,transparent)"></div></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:12px">
+                      <div style="display:flex;flex-direction:column;gap:12px">
+                        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 16px">
+                          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="font-weight:700;font-size:14px">תקציב לפי קטגוריה</span><a href="#s-budget" style="font-size:12px;font-weight:700">כל הקטגוריות</a></div>
+                          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px 2px">
+                            <sc-for list="{{ cats }}" as="item" hint-placeholder-count="7">
+                              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 2px">
+                                <div style="position:relative;width:80px;height:80px">
+                                  <svg viewBox="0 0 80 80" style="width:80px;height:80px;transform:rotate(-90deg) scaleX(-1)"><circle cx="40" cy="40" r="33" fill="none" stroke-width="7" style="stroke:var(--surface-2)"></circle><circle cx="40" cy="40" r="33" fill="none" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ item.ringPct }} 100" style="stroke:var({{ item.ringColorVar }})"></circle></svg>
+                                  <span style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:99px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:13px;color:var(--mut)">{{ item.icon }}</span></span>
+                                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:5px"><span style="font-size:12.5px;font-weight:800">{{ item.centerAmt }}</span><span style="font-size:8px;color:var(--mut)">{{ item.centerLabel }}</span></div>
+                                </div>
+                                <div style="font-weight:600;font-size:11.5px">{{ item.short }}</div>
+                                <div style="display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:700;color:var({{ item.ringColorVar }})"><span class="msr" style="font-size:12px">{{ item.statusIcon }}</span>{{ item.statusLabel }}</div>
+                              </div>
+                            </sc-for>
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 2px"><div style="width:80px;height:80px;border-radius:99px;border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--mut)"><span class="msr" style="font-size:22px">grid_view</span><span style="font-size:10px;font-weight:700">4+</span></div><div style="font-weight:700;font-size:11.5px;color:var(--accent-ink)">הכול</div></div>
+                          </div>
+                        </div>
+                        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 16px">
+                          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-weight:700;font-size:14px">תנועות אחרונות</span><a href="#s-transactions" style="font-size:12px;font-weight:700">הכול</a></div>
+                          <sc-for list="{{ txns }}" as="t" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)"><span style="width:32px;height:32px;border-radius:9px;background:{{ t.iconBg }};display:grid;place-items:center;flex:none"><span class="msr" style="font-size:17px;color:{{ t.iconFg }}">{{ t.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:12.5px">{{ t.name }}</div><div style="font-size:11px;color:var(--mut)">{{ t.cat }} · {{ t.date }}</div></div><span style="font-weight:700;font-size:13px;color:{{ t.amtColor }}">{{ t.amtStr }}</span></div></sc-for>
+                        </div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:12px">
+                        <div style="background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);border-radius:14px;padding:15px 16px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;color:var(--accent-ink)"><span class="msr" style="font-size:18px">auto_awesome</span><span style="font-weight:700;font-size:13px">תובנות חכמות</span></div><div style="display:flex;gap:8px;margin-bottom:9px"><span class="msr" style="font-size:16px;color:var(--accent-ink);margin-top:1px">lightbulb</span><span style="font-size:12px;line-height:1.5">בקצב הנוכחי צפויה חריגה של כ־₪450 במסעדות. צמצום שתי הזמנות בשבוע יאזן אותה.</span></div><div style="display:flex;gap:8px"><span class="msr" style="font-size:16px;color:var(--accent-ink);margin-top:1px">savings</span><span style="font-size:12px;line-height:1.5">צפוי עודף ₪5,600 — שקלו העברה של ₪3,000 לחיסכון.</span></div></div>
+                        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 16px"><div style="font-weight:700;font-size:13px;margin-bottom:11px">תשלומים צפויים</div><div style="display:flex;align-items:center;gap:9px;margin-bottom:11px"><span style="width:28px;height:28px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center"><span class="msr" style="font-size:16px;color:var(--mut)">account_balance</span></span><div style="flex:1"><div style="font-weight:600;font-size:12.5px">משכנתא</div><div style="font-size:11px;color:var(--mut)">1 באוגוסט</div></div><span style="font-weight:700;font-size:12.5px">₪6,200</span></div><div style="display:flex;align-items:center;gap:9px"><span style="width:28px;height:28px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center"><span class="msr" style="font-size:16px;color:var(--mut)">home</span></span><div style="flex:1"><div style="font-weight:600;font-size:12.5px">ארנונה</div><div style="font-size:11px;color:var(--mut)">25 ביולי</div></div><span style="font-weight:700;font-size:12.5px">₪610</span></div></div>
+                        <div style="background:var(--surface);border:1px solid color-mix(in srgb,var(--warn) 28%,transparent);border-radius:14px;padding:15px 16px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;color:var(--warn)"><span class="msr" style="font-size:18px">report</span><span style="font-weight:700;font-size:13px;color:var(--ink)">התראות חריגה</span></div><div style="font-size:12px;line-height:1.5"><b>ביגוד</b> · חריגה ₪140 &nbsp;·&nbsp; <b>בילויים</b> · חריגה ₪140</div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- MOBILE -->
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:6px 16px 12px"><div style="flex:1"><div style="font-size:11px;color:var(--mut)">יולי 2025 · מסונכרן</div><div style="font-weight:800;font-size:19px">שלום, אורן 👋</div></div><button style="all:unset;position:relative;width:34px;height:34px;border-radius:99px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--mut)">notifications</span><span style="position:absolute;top:6px;left:7px;width:7px;height:7px;border-radius:99px;background:var(--warn)"></span></button></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 14px;display:flex;flex-direction:column;gap:11px">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:var(--sh-sm)"><div style="font-size:12px;color:var(--mut);font-weight:600">יתרה חזויה לסוף החודש</div><div style="font-size:28px;font-weight:800;margin:2px 0 6px">₪28,850</div><div style="display:flex;gap:8px"><span style="display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;color:var(--pos-ink);background:var(--pos-soft);border-radius:8px;padding:3px 9px"><span class="msr" style="font-size:14px">arrow_upward</span>עודף ₪5,600</span><span style="font-size:11.5px;font-weight:600;color:var(--mut);background:var(--surface-2);border-radius:8px;padding:3px 9px">כעת ₪23,450</span></div></div>
+                  <div style="display:flex;height:12px;border-radius:99px;overflow:hidden;gap:2px;background:var(--surface-2)"><div style="width:46.5%;background:var(--accent)"></div><div style="width:39.4%;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--mut) 30%,transparent) 0 3px,transparent 3px 7px)"></div><div style="width:14.1%;background:color-mix(in srgb,var(--pos) 55%,transparent)"></div></div>
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 15px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-weight:700;font-size:13px">תקציב לפי קטגוריה</span><span class="msr" style="font-size:18px;color:var(--mut)">chevron_left</span></div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px 4px">
+                      <sc-for list="{{ ringDemo }}" as="item" hint-placeholder-count="3">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:5px">
+                          <div style="position:relative;width:78px;height:78px"><svg viewBox="0 0 78 78" style="width:78px;height:78px;transform:rotate(-90deg) scaleX(-1)"><circle cx="39" cy="39" r="32" fill="none" stroke-width="7" style="stroke:var(--surface-2)"></circle><circle cx="39" cy="39" r="32" fill="none" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ item.ringPct }} 100" style="stroke:var({{ item.ringColorVar }})"></circle></svg><span style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:99px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:13px;color:var(--mut)">{{ item.icon }}</span></span><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-top:6px"><span style="font-size:12px;font-weight:800">{{ item.centerAmt }}</span></div></div>
+                          <div style="display:inline-flex;align-items:center;gap:2px;font-size:9.5px;font-weight:700;color:var({{ item.ringColorVar }})"><span class="msr" style="font-size:11px">{{ item.statusIcon }}</span>{{ item.short }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="background:var(--accent-soft);border-radius:16px;padding:13px 15px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;color:var(--accent-ink)"><span class="msr" style="font-size:17px">auto_awesome</span><span style="font-weight:700;font-size:12.5px">תובנה</span></div><div style="font-size:12px;line-height:1.5">בקצב הנוכחי צפויה חריגה של ₪450 במסעדות עד סוף החודש.</div></div>
+                </div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.dashboard }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 2 · BUDGET ==================== -->
+        <div id="s-budget" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">2</span><h3 style="margin:0;font-size:16px;font-weight:800">תקציב חודשי</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">טבעות קטגוריה מלאות, עריכת תקציב, ומגירת פירוט לכל קטגוריה (מוצגת פתוחה במובייל).</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+
+            <!-- DESKTOP -->
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.budget }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)">
+                    <div style="font-weight:800;font-size:15px">תקציב · יולי 2025</div>
+                    <div style="display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:3px"><span style="font-size:12px;font-weight:700;padding:5px 13px;background:var(--surface);border-radius:99px;box-shadow:var(--sh-sm)">משק בית</span><span style="font-size:12px;font-weight:600;padding:5px 13px;color:var(--mut)">עסק</span></div>
+                    <div style="flex:1"></div>
+                    <button style="all:unset;cursor:pointer;background:var(--accent);color:#fff;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;display:inline-flex;align-items:center;gap:6px"><span class="msr" style="font-size:16px">add</span>קטגוריה חדשה</button>
+                  </header>
+                  <div style="padding:16px 18px;background:var(--bg)">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px"><div style="font-size:11.5px;color:var(--mut);font-weight:600">תקציב חודשי</div><div style="font-size:21px;font-weight:800">₪34,000</div></div>
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px"><div style="font-size:11.5px;color:var(--mut);font-weight:600">הוצא · 54%</div><div style="font-size:21px;font-weight:800">₪18,400</div></div>
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px"><div style="font-size:11.5px;color:var(--mut);font-weight:600">נותר בתקציב</div><div style="font-size:21px;font-weight:800">₪15,600</div></div>
+                    </div>
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+                      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px 4px">
+                        <sc-for list="{{ cats }}" as="item" hint-placeholder-count="7">
+                          <div style="display:flex;flex-direction:column;align-items:center;gap:7px;padding:6px 2px;border-radius:14px;cursor:pointer">
+                            <div style="position:relative;width:92px;height:92px"><svg viewBox="0 0 92 92" style="width:92px;height:92px;transform:rotate(-90deg) scaleX(-1)"><circle cx="46" cy="46" r="38" fill="none" stroke-width="8" style="stroke:var(--surface-2)"></circle><circle cx="46" cy="46" r="38" fill="none" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ item.ringPct }} 100" style="stroke:var({{ item.ringColorVar }})"></circle></svg><span style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:99px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:14px;color:var(--mut)">{{ item.icon }}</span></span><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:6px"><span style="font-size:14px;font-weight:800">{{ item.centerAmt }}</span><span style="font-size:9px;color:var(--mut)">{{ item.centerLabel }}</span></div></div>
+                            <div style="font-weight:600;font-size:12.5px">{{ item.short }}</div>
+                            <div style="font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums">{{ item.rangeStr }}</div>
+                            <div style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var({{ item.ringColorVar }})"><span class="msr" style="font-size:12px">{{ item.statusIcon }}</span>{{ item.statusLabel }}</div>
+                          </div>
+                        </sc-for>
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:6px 2px"><div style="width:92px;height:92px;border-radius:99px;border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--accent-ink)"><span class="msr" style="font-size:26px">add</span></div><div style="font-weight:700;font-size:12.5px;color:var(--accent-ink)">קטגוריה</div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- MOBILE (with bottom sheet open) -->
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל · מגירת פירוט פתוחה</span>
+              <div style="position:relative;width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="display:flex;align-items:center;gap:10px;padding:6px 16px 12px"><div style="flex:1"><div style="font-size:11px;color:var(--mut)">יולי 2025</div><div style="font-weight:800;font-size:19px">תקציב חודשי</div></div><button style="all:unset;width:34px;height:34px;border-radius:99px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--mut)">add</span></button></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 14px">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 15px">
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px 4px">
+                      <sc-for list="{{ cats }}" as="item" hint-placeholder-count="6">
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:5px"><div style="position:relative;width:84px;height:84px"><svg viewBox="0 0 84 84" style="width:84px;height:84px;transform:rotate(-90deg) scaleX(-1)"><circle cx="42" cy="42" r="34" fill="none" stroke-width="7" style="stroke:var(--surface-2)"></circle><circle cx="42" cy="42" r="34" fill="none" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ item.ringPct }} 100" style="stroke:var({{ item.ringColorVar }})"></circle></svg><span style="position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:99px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center"><span class="msr" style="font-size:13px;color:var(--mut)">{{ item.icon }}</span></span><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-top:6px"><span style="font-size:12.5px;font-weight:800">{{ item.centerAmt }}</span></div></div><div style="display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:700;color:var({{ item.ringColorVar }})"><span class="msr" style="font-size:12px">{{ item.statusIcon }}</span>{{ item.short }}</div></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+                <div style="position:absolute;inset:0;background:rgba(15,22,25,.42);display:flex;align-items:flex-end">
+                  <div style="width:100%;background:var(--surface);border-top-left-radius:24px;border-top-right-radius:24px;padding:14px 20px 22px;box-shadow:var(--sh-lg)">
+                    <div style="width:42px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 15px"></div>
+                    <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px"><span style="width:42px;height:42px;border-radius:12px;background:var(--warn-soft);display:grid;place-items:center"><span class="msr" style="font-size:22px;color:var(--warn)">checkroom</span></span><div style="flex:1"><div style="font-weight:700;font-size:16px">ביגוד</div><div style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--warn)"><span class="msr" style="font-size:14px">priority_high</span>חריגה ₪140</div></div><button style="all:unset;width:32px;height:32px;border-radius:99px;background:var(--surface-2);display:grid;place-items:center"><span class="msr" style="font-size:19px;color:var(--mut)">close</span></button></div>
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:15px">
+                      <div style="background:var(--surface-2);border-radius:12px;padding:11px 13px"><div style="font-size:11px;color:var(--mut)">תקציב חודשי</div><div style="font-size:16px;font-weight:800">₪800</div></div>
+                      <div style="background:var(--surface-2);border-radius:12px;padding:11px 13px"><div style="font-size:11px;color:var(--mut)">הוצא</div><div style="font-size:16px;font-weight:800">₪940</div></div>
+                      <div style="background:var(--surface-2);border-radius:12px;padding:11px 13px"><div style="font-size:11px;color:var(--mut)">חריגה</div><div style="font-size:16px;font-weight:800;color:var(--warn)">−₪140</div></div>
+                      <div style="background:var(--surface-2);border-radius:12px;padding:11px 13px"><div style="font-size:11px;color:var(--mut)">צפי לסוף החודש</div><div style="font-size:16px;font-weight:800">₪1,160</div></div>
+                    </div>
+                    <div style="font-weight:700;font-size:13px;margin-bottom:6px">תנועות בקטגוריה</div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)"><div style="flex:1"><div style="font-weight:600;font-size:12.5px">ZARA</div><div style="font-size:11px;color:var(--mut)">13 ביולי</div></div><span style="font-weight:700;font-size:13px">₪290</span></div>
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 0"><div style="flex:1"><div style="font-weight:600;font-size:12.5px">קסטרו</div><div style="font-size:11px;color:var(--mut)">9 ביולי</div></div><span style="font-weight:700;font-size:13px">₪360</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 3 · TRANSACTIONS ==================== -->
+        <div id="s-transactions" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">3</span><h3 style="margin:0;font-size:16px;font-weight:800">תנועות</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">חיפוש, סינון וטאבים. הכנסות מודגשות בטקסט וסימן, לא בצבע בלבד. בתחתית — מצב טעינה של פריטים נוספים.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.transactions }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)">
+                    <div style="font-weight:800;font-size:15px">תנועות</div>
+                    <div style="flex:1;max-width:280px;display:flex;align-items:center;gap:7px;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 11px"><span class="msr" style="font-size:17px;color:var(--mut)">search</span><span style="font-size:12.5px;color:var(--mut)">חיפוש עסק, סכום או קטגוריה…</span></div>
+                    <div style="flex:1"></div>
+                    <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 11px"><span class="msr" style="font-size:16px;color:var(--mut)">tune</span>מסננים</span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 11px"><span class="msr" style="font-size:16px;color:var(--mut)">download</span>ייצוא</span>
+                  </header>
+                  <div style="padding:14px 18px;background:var(--bg)">
+                    <div style="display:flex;gap:18px;border-bottom:1px solid var(--line);margin-bottom:6px;padding:0 4px"><span style="font-size:13px;font-weight:700;padding-bottom:9px;border-bottom:2px solid var(--accent)">הכול</span><span style="font-size:13px;font-weight:600;color:var(--mut);padding-bottom:9px">הוצאות</span><span style="font-size:13px;font-weight:600;color:var(--mut);padding-bottom:9px">הכנסות</span><span style="font-size:13px;font-weight:600;color:var(--mut);padding-bottom:9px">לבדיקה</span></div>
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 16px">
+                      <sc-for list="{{ txns }}" as="t" hint-placeholder-count="8">
+                        <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)"><span style="width:36px;height:36px;border-radius:10px;background:{{ t.iconBg }};display:grid;place-items:center;flex:none"><span class="msr" style="font-size:19px;color:{{ t.iconFg }}">{{ t.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13.5px">{{ t.name }}</div><div style="font-size:11.5px;color:var(--mut)">{{ t.cat }} · {{ t.acct }}</div></div><sc-if value="{{ t.review }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);border-radius:6px;padding:3px 8px"><span class="msr" style="font-size:13px">error</span>לבדיקה</span></sc-if><span style="font-size:11.5px;color:var(--mut);min-width:78px;text-align:center">{{ t.date }}</span><span style="font-weight:700;font-size:14px;color:{{ t.amtColor }};min-width:84px;text-align:start">{{ t.amtStr }}</span></div>
+                      </sc-for>
+                      <div style="display:flex;align-items:center;gap:11px;padding:11px 0"><span style="width:36px;height:36px;border-radius:10px;background:var(--surface-2);animation:sk 1.2s infinite;flex:none"></span><div style="flex:1"><div style="width:40%;height:11px;border-radius:5px;background:var(--surface-2);animation:sk 1.2s infinite;margin-bottom:6px"></div><div style="width:60%;height:9px;border-radius:5px;background:var(--surface-2);animation:sk 1.2s infinite"></div></div><div style="width:70px;height:12px;border-radius:5px;background:var(--surface-2);animation:sk 1.2s infinite"></div></div>
+                      <div style="text-align:center;padding:6px 0 12px;font-size:12px;color:var(--mut)">טוען תנועות נוספות…</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-weight:800;font-size:19px;margin-bottom:10px">תנועות</div><div style="display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 11px"><span class="msr" style="font-size:17px;color:var(--mut)">search</span><span style="font-size:12.5px;color:var(--mut)">חיפוש…</span></div><div style="display:flex;gap:7px;margin-top:9px;overflow:hidden"><span style="font-size:11.5px;font-weight:700;background:var(--accent);color:#fff;border-radius:99px;padding:5px 12px">הכול</span><span style="font-size:11.5px;font-weight:600;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px 12px">הוצאות</span><span style="font-size:11.5px;font-weight:600;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px 12px">הכנסות</span></div></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px"><div style="font-size:11px;font-weight:700;color:var(--mut);padding:4px 2px 6px">היום</div><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:2px 14px"><sc-for list="{{ txns }}" as="t" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)"><span style="width:34px;height:34px;border-radius:9px;background:{{ t.iconBg }};display:grid;place-items:center;flex:none"><span class="msr" style="font-size:18px;color:{{ t.iconFg }}">{{ t.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">{{ t.name }}</div><div style="font-size:11px;color:var(--mut)">{{ t.cat }}</div></div><span style="font-weight:700;font-size:13px;color:{{ t.amtColor }}">{{ t.amtStr }}</span></div></sc-for></div></div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.transactions }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 4 · REVIEW ==================== -->
+        <div id="s-review" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">4</span><h3 style="margin:0;font-size:16px;font-weight:800">תנועות לבדיקה</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">תור פעולות ברור: כל פריט עם סיבה ופעולה אחת עיקרית. במובייל מוצג מצב "ריק" — הכול מסודר.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ · תור פעולות</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.review }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)"><div style="font-weight:800;font-size:15px">תנועות לבדיקה</div><span style="background:var(--warn-soft);color:var(--warn);font-size:11px;font-weight:800;border-radius:99px;padding:2px 9px">4 פתוחות</span><div style="flex:1"></div><button style="all:unset;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--accent-ink)">סמן הכול כתקין</button></header>
+                  <div style="padding:14px 18px;background:var(--bg);display:flex;flex-direction:column;gap:10px">
+                    <sc-for list="{{ review }}" as="r" hint-placeholder-count="4">
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:13px">
+                        <span style="width:40px;height:40px;border-radius:11px;background:var(--warn-soft);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:21px;color:var(--warn)">{{ r.icon }}</span></span>
+                        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">{{ r.name }}</div><div style="font-size:11.5px;color:var(--mut)">{{ r.note }}</div><div style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--warn);margin-top:4px"><span class="msr" style="font-size:13px">flag</span>{{ r.reason }}</div></div>
+                        <span style="font-weight:800;font-size:16px;min-width:80px;text-align:start">{{ r.amtStr }}</span>
+                        <button style="all:unset;cursor:pointer;background:var(--surface-2);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px">תקין</button>
+                        <button style="all:unset;cursor:pointer;background:var(--accent);color:#fff;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px">{{ r.action }}</button>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל · מצב ריק</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-weight:800;font-size:19px">לבדיקה</div></div>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px 32px;gap:5px"><div style="width:76px;height:76px;border-radius:99px;background:var(--pos-soft);display:grid;place-items:center;margin-bottom:8px"><span class="msr" style="font-size:40px;color:var(--pos-ink)">task_alt</span></div><div style="font-weight:800;font-size:17px">הכול מסודר ✨</div><div style="font-size:13px;color:var(--mut);line-height:1.5">אין תנועות שדורשות בדיקה. נעדכן אתכם כשתגיע תנועה חדשה לסיווג.</div><button style="all:unset;cursor:pointer;margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 16px;font-weight:700;font-size:12.5px">רענון סנכרון</button></div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.review }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 5 · PLANNING ==================== -->
+        <div id="s-planning" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">5</span><h3 style="margin:0;font-size:16px;font-weight:800">תכנון וצפי הוצאות</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">הפרדה ברורה בין הוצאות קבועות, הערכות משתנות וחד־פעמיות — והשפעתן על היתרה החזויה.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.planning }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)"><div style="font-weight:800;font-size:15px">תכנון · אוגוסט 2025</div><div style="flex:1"></div><button style="all:unset;cursor:pointer;background:var(--accent);color:#fff;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;display:inline-flex;align-items:center;gap:6px"><span class="msr" style="font-size:16px">add</span>הוצאה צפויה</button></header>
+                  <div style="padding:16px 18px;background:var(--bg)">
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px"><div style="font-size:11.5px;color:var(--mut);font-weight:600">הכנסה צפויה</div><div style="font-size:20px;font-weight:800">₪39,600</div></div>
+                      <div style="background:var(--surface);border:1px dashed color-mix(in srgb,var(--mut) 45%,transparent);border-radius:12px;padding:13px 15px"><div style="font-size:11.5px;color:var(--mut);font-weight:600">הוצאות צפויות</div><div style="font-size:20px;font-weight:800">₪34,050</div></div>
+                      <div style="background:var(--pos-soft);border:1px solid color-mix(in srgb,var(--pos) 28%,transparent);border-radius:12px;padding:13px 15px"><div style="font-size:11.5px;color:var(--pos-ink);font-weight:700">מאזן חזוי</div><div style="display:flex;align-items:center;gap:4px"><span class="msr" style="font-size:18px;color:var(--pos-ink)">arrow_upward</span><span style="font-size:20px;font-weight:800;color:var(--pos-ink)">₪5,550</span></div></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+                      <sc-for list="{{ planning }}" as="g" hint-placeholder-count="3">
+                        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px"><div style="font-weight:700;font-size:13px;margin-bottom:12px">{{ g.group }}</div><sc-for list="{{ g.items }}" as="p" hint-placeholder-count="3"><div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)"><span style="width:32px;height:32px;border-radius:9px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:17px;color:var(--mut)">{{ p.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:12.5px">{{ p.name }}</div><div style="font-size:11px;color:var(--mut)">{{ p.date }}</div></div><span style="font-weight:700;font-size:12.5px">{{ p.amtStr }}</span></div></sc-for></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-size:11px;color:var(--mut)">אוגוסט 2025</div><div style="font-weight:800;font-size:19px">תכנון וצפי</div></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 10px;display:flex;flex-direction:column;gap:11px">
+                  <div style="background:var(--pos-soft);border-radius:16px;padding:14px 15px"><div style="font-size:12px;color:var(--pos-ink);font-weight:700">מאזן חזוי לאוגוסט</div><div style="display:flex;align-items:center;gap:5px"><span class="msr" style="font-size:22px;color:var(--pos-ink)">arrow_upward</span><span style="font-size:26px;font-weight:800;color:var(--pos-ink)">₪5,550</span></div><div style="font-size:11.5px;color:var(--pos-ink);margin-top:2px">הכנסה ₪39,600 · צפי הוצאות ₪34,050</div></div>
+                  <sc-for list="{{ planning }}" as="g" hint-placeholder-count="3"><div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 15px"><div style="font-weight:700;font-size:12.5px;margin-bottom:9px">{{ g.group }}</div><sc-for list="{{ g.items }}" as="p" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="width:28px;height:28px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:15px;color:var(--mut)">{{ p.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:12px">{{ p.name }}</div><div style="font-size:10.5px;color:var(--mut)">{{ p.date }}</div></div><span style="font-weight:700;font-size:12px">{{ p.amtStr }}</span></div></sc-for></div></sc-for>
+                </div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.planning }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 6 · HOUSE vs BUSINESS ==================== -->
+        <div id="s-split" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">6</span><h3 style="margin:0;font-size:16px;font-weight:800">בית מול עסק</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">משק הבית ראשי; העסק מוצג בנפרד ולעולם לא מעורבב בסכומי הבית. כרטיס מע״מ ייעודי לעסק.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.split }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)"><div style="font-weight:800;font-size:15px">בית מול עסק · יולי 2025</div></header>
+                  <div style="padding:16px 18px;background:var(--bg);display:grid;grid-template-columns:1fr 1fr;gap:14px">
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="width:32px;height:32px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--accent-ink)">home</span></span><span style="font-weight:800;font-size:15px">משק בית</span><span style="font-size:11px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:6px;padding:2px 8px">ראשי</span></div>
+                      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><span style="font-size:13px;color:var(--mut)">הכנסה</span><span style="font-weight:700;font-size:14px">₪39,600</span></div>
+                      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)"><span style="font-size:13px;color:var(--mut)">הוצאות</span><span style="font-weight:700;font-size:14px">₪34,000</span></div>
+                      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 0"><span style="font-size:13px;font-weight:700">מאזן</span><span style="display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:17px;color:var(--pos-ink)"><span class="msr" style="font-size:18px">arrow_upward</span>₪5,600</span></div>
+                    </div>
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="width:32px;height:32px;border-radius:9px;background:var(--surface-2);display:grid;place-items:center"><span class="msr" style="font-size:18px;color:var(--ink-2)">storefront</span></span><span style="font-weight:800;font-size:15px">העסק (עוסק מורשה)</span><span style="font-size:11px;font-weight:700;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:2px 8px">בנפרד</span></div>
+                      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-bottom:14px"><div><div style="font-size:11.5px;color:var(--mut)">הכנסות</div><div style="font-size:17px;font-weight:800">₪12,400</div></div><div><div style="font-size:11.5px;color:var(--mut)">הוצאות</div><div style="font-size:17px;font-weight:800">₪4,900</div></div><div><div style="font-size:11.5px;color:var(--mut)">רווח</div><div style="font-size:17px;font-weight:800;color:var(--pos-ink)">₪7,500</div></div><div><div style="font-size:11.5px;color:var(--mut)">מע״מ לתשלום</div><div style="font-size:17px;font-weight:800">₪1,275</div></div></div>
+                      <div style="display:flex;align-items:center;gap:8px;background:var(--near-soft);border-radius:10px;padding:10px 12px"><span class="msr" style="font-size:17px;color:var(--near)">event</span><span style="font-size:12px;font-weight:600;color:var(--ink)">דיווח מע״מ הבא · 15 באוגוסט</span></div>
+                    </div>
+                    <div style="grid-column:1 / -1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 15px"><span class="msr" style="font-size:18px;color:var(--mut)">info</span><span style="font-size:12.5px;color:var(--ink-2)">הכנסות והוצאות העסק אינן נכללות בתקציב, במאזן או ביתרה החזויה של משק הבית. שווי נטו כולל את שניהם במסך "נכסים וחיסכון".</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל · מחליף הקשר</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-weight:800;font-size:19px;margin-bottom:10px">בית מול עסק</div><div style="display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:3px"><span style="flex:1;text-align:center;font-size:12.5px;font-weight:700;padding:7px;background:var(--surface);border-radius:99px;box-shadow:var(--sh-sm)">משק בית</span><span style="flex:1;text-align:center;font-size:12.5px;font-weight:600;padding:7px;color:var(--mut)">העסק</span></div></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 10px;display:flex;flex-direction:column;gap:11px">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><span style="width:30px;height:30px;border-radius:9px;background:var(--accent-soft);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:var(--accent-ink)">home</span></span><span style="font-weight:800;font-size:14px">משק בית</span></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span style="font-size:12.5px;color:var(--mut)">הכנסה</span><span style="font-weight:700;font-size:13.5px">₪39,600</span></div><div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)"><span style="font-size:12.5px;color:var(--mut)">הוצאות</span><span style="font-weight:700;font-size:13.5px">₪34,000</span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 0"><span style="font-size:12.5px;font-weight:700">מאזן</span><span style="font-weight:800;font-size:16px;color:var(--pos-ink)">+₪5,600</span></div></div>
+                  <div style="display:flex;align-items:flex-start;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 13px"><span class="msr" style="font-size:16px;color:var(--mut)">info</span><span style="font-size:11.5px;color:var(--ink-2);line-height:1.5">העסק מוצג בנפרד ואינו מעורבב בסכומי הבית.</span></div>
+                </div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.split }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 7 · ASSETS ==================== -->
+        <div id="s-assets" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">7</span><h3 style="margin:0;font-size:16px;font-weight:800">נכסים, פנסיה וחיסכון</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">שווי נטו במבט אחד, ללא גרפים מיותרים. התחייבויות מסומנות בטקסט וסימן, לא בצבע בלבד.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.assets }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)"><div style="font-weight:800;font-size:15px">נכסים וחיסכון</div><div style="flex:1"></div><span style="font-size:12px;color:var(--mut)">עודכן היום · 08:00</span></header>
+                  <div style="padding:16px 18px;background:var(--bg)">
+                    <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:10px;margin-bottom:14px">
+                      <div style="background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);border-radius:12px;padding:14px 16px"><div style="font-size:11.5px;color:var(--accent-ink);font-weight:700">שווי נטו כולל</div><div style="font-size:26px;font-weight:800">₪2,421,900</div></div>
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px"><div style="font-size:11.5px;color:var(--mut);font-weight:600">סך נכסים</div><div style="font-size:20px;font-weight:800">₪3,241,900</div></div>
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px"><div style="display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--mut);font-weight:600"><span class="msr" style="font-size:14px">south_east</span>התחייבויות</div><div style="font-size:20px;font-weight:800">−₪820,000</div></div>
+                    </div>
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 16px">
+                      <sc-for list="{{ assets }}" as="a" hint-placeholder-count="8">
+                        <div style="display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line)"><span style="width:38px;height:38px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:20px;color:var(--mut)">{{ a.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13.5px">{{ a.name }}</div><div style="font-size:11.5px;color:var(--mut)">{{ a.sub }}</div></div><span style="font-size:10.5px;font-weight:700;color:var(--mut);background:var(--surface-2);border-radius:6px;padding:2px 8px">{{ a.chip }}</span><span style="font-weight:800;font-size:15px;min-width:120px;text-align:start">{{ a.valStr }}</span></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-weight:800;font-size:19px">נכסים וחיסכון</div></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 10px;display:flex;flex-direction:column;gap:11px">
+                  <div style="background:var(--accent-soft);border-radius:16px;padding:15px 16px"><div style="font-size:12px;color:var(--accent-ink);font-weight:700">שווי נטו כולל</div><div style="font-size:26px;font-weight:800">₪2,421,900</div><div style="font-size:11.5px;color:var(--accent-ink);margin-top:2px">נכסים ₪3.24M · התחייבויות ₪820K</div></div>
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:4px 15px"><sc-for list="{{ assets }}" as="a" hint-placeholder-count="6"><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)"><span style="width:32px;height:32px;border-radius:9px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:17px;color:var(--mut)">{{ a.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:12.5px">{{ a.name }}</div><div style="font-size:10.5px;color:var(--mut)">{{ a.chip }}</div></div><span style="font-weight:700;font-size:12.5px">{{ a.valStr }}</span></div></sc-for></div>
+                </div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.assets }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 8 · INSURANCE ==================== -->
+        <div id="s-insurance" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">8</span><h3 style="margin:0;font-size:16px;font-weight:800">פוליסות ביטוח</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">כל הפוליסות במקום אחד עם פרמיה, כיסוי וסטטוס. חידוש קרוב מסומן באייקון וטקסט.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.insurance }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)"><div style="font-weight:800;font-size:15px">ביטוחים</div><div style="flex:1"></div><span style="font-size:12px;color:var(--mut)">סה״כ פרמיה חודשית</span><span style="font-weight:800;font-size:15px">₪1,033</span></header>
+                  <div style="padding:16px 18px;background:var(--bg);display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <sc-for list="{{ insurance }}" as="p" hint-placeholder-count="6">
+                      <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 16px;display:flex;align-items:center;gap:13px"><span style="width:42px;height:42px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:22px;color:var(--mut)">{{ p.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">{{ p.name }}</div><div style="font-size:11.5px;color:var(--mut)">{{ p.co }} · {{ p.cover }}</div><span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var({{ p.stColor }});background:{{ p.stBg }};border-radius:6px;padding:2px 8px;margin-top:5px"><span class="msr" style="font-size:12px">{{ p.stIcon }}</span>{{ p.stLabel }}</span></div><div style="text-align:start"><div style="font-weight:800;font-size:15px">{{ p.premStr }}</div></div></div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-weight:800;font-size:19px">ביטוחים</div></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 10px;display:flex;flex-direction:column;gap:9px">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:12.5px;color:var(--mut);font-weight:600">פרמיה חודשית כוללת</span><span style="font-weight:800;font-size:17px">₪1,033</span></div>
+                  <sc-for list="{{ insurance }}" as="p" hint-placeholder-count="5"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:11px"><span style="width:36px;height:36px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:19px;color:var(--mut)">{{ p.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:12.5px">{{ p.name }}</div><span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var({{ p.stColor }})"><span class="msr" style="font-size:12px">{{ p.stIcon }}</span>{{ p.stLabel }}</span></div><span style="font-weight:800;font-size:13px">{{ p.premStr }}</span></div></sc-for>
+                </div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.insurance }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 9 · ACCOUNTS (error state) ==================== -->
+        <div id="s-accounts" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">9</span><h3 style="margin:0;font-size:16px;font-weight:800">חשבונות וכרטיסים</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">מצב חיבור לכל מקור: מסונכרן / מסנכרן / שגיאה. מצב השגיאה כולל באנר ופעולת חיבור מחדש.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ · מצב שגיאת סנכרון</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.accounts }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)"><div style="font-weight:800;font-size:15px">חשבונות וכרטיסים</div><div style="flex:1"></div><button style="all:unset;cursor:pointer;background:var(--accent);color:#fff;border-radius:9px;padding:8px 14px;font-weight:700;font-size:12.5px;display:inline-flex;align-items:center;gap:6px"><span class="msr" style="font-size:16px">add_link</span>חיבור מקור</button></header>
+                  <div style="padding:16px 18px;background:var(--bg)">
+                    <div style="display:flex;align-items:center;gap:10px;background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 32%,transparent);border-radius:12px;padding:12px 15px;margin-bottom:14px"><span class="msr" style="font-size:20px;color:var(--warn)">error</span><div style="flex:1"><div style="font-weight:700;font-size:13px">אירעה שגיאת סנכרון באמריקן אקספרס</div><div style="font-size:11.5px;color:var(--ink-2)">החיבור פג לפני יומיים. חלק מהתנועות עשויות לא להופיע.</div></div><button style="all:unset;cursor:pointer;background:var(--warn);color:#fff;border-radius:9px;padding:8px 15px;font-weight:700;font-size:12.5px">התחברות מחדש</button></div>
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 16px">
+                      <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="5">
+                        <div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)"><span style="width:40px;height:40px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:21px;color:var(--mut)">{{ a.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">{{ a.name }}</div><div style="font-size:11.5px;color:var(--mut)">{{ a.sub }}</div></div><span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var({{ a.stColor }});background:{{ a.stBg }};border-radius:7px;padding:4px 9px"><span class="msr" style="font-size:13px;{{ a.spinStyle }}">{{ a.stIcon }}</span>{{ a.stLabel }}</span><div style="min-width:130px;text-align:start"><div style="font-size:10.5px;color:var(--mut)">{{ a.balLabel }}</div><div style="font-weight:800;font-size:14px">{{ a.bal }}</div></div><sc-if value="{{ a.err }}" hint-placeholder-val="{{ false }}"><button style="all:unset;cursor:pointer;color:var(--warn);font-weight:700;font-size:12px;white-space:nowrap">חיבור מחדש</button></sc-if></div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-weight:800;font-size:19px">חשבונות וכרטיסים</div></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 10px;display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;align-items:flex-start;gap:8px;background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);border-radius:12px;padding:11px 13px"><span class="msr" style="font-size:17px;color:var(--warn);margin-top:1px">error</span><div style="flex:1"><div style="font-weight:700;font-size:12px">שגיאת סנכרון · אמריקן אקספרס</div><button style="all:unset;cursor:pointer;color:var(--warn);font-weight:700;font-size:12px;margin-top:3px">התחברות מחדש ←</button></div></div>
+                  <sc-for list="{{ accounts }}" as="a" hint-placeholder-count="5"><div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:19px;color:var(--mut)">{{ a.icon }}</span></span><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:12.5px">{{ a.name }}</div><span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var({{ a.stColor }})"><span class="msr" style="font-size:12px;{{ a.spinStyle }}">{{ a.stIcon }}</span>{{ a.stLabel }}</span></div><span style="font-weight:800;font-size:13px">{{ a.bal }}</span></div></sc-for>
+                </div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.accounts }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== SCREEN 10 · SETTINGS ==================== -->
+        <div id="s-settings" style="scroll-margin-top:80px">
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px"><span style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800">10</span><h3 style="margin:0;font-size:16px;font-weight:800">הגדרות ובני משפחה</h3></div>
+          <p style="margin:0 0 14px;font-size:12px;color:var(--mut)">חברי משק הבית, מטבע ושפה, מצב תצוגה (בהיר/כהה/מערכת), התראות, אבטחה וגיבוי.</p>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">דסקטופ</span>
+              <div style="width:1160px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-lg);overflow:hidden;display:flex">
+                <aside style="width:206px;flex:none;background:var(--bg);border-inline-start:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 14px"><div style="width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:17px;color:#fff">account_balance_wallet</span></div><div><div style="font-weight:800;font-size:13px;line-height:1">כספי הבית</div><div style="font-size:10px;color:var(--mut)">אורן ודניאל</div></div></div>
+                  <sc-for list="{{ navs.settings }}" as="n" hint-placeholder-count="10"><div style="position:relative;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;background:{{ n.bg }};color:{{ n.fg }};font-weight:600;font-size:12.5px;cursor:pointer"><span style="position:absolute;inset-inline-start:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:{{ n.ind }}"></span><span class="msr" style="font-size:19px">{{ n.icon }}</span><span style="flex:1">{{ n.label }}</span><sc-if value="{{ n.badge }}" hint-placeholder-val="{{ false }}"><span style="background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px">{{ n.badge }}</span></sc-if></div></sc-for>
+                </aside>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+                  <header style="display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)"><div style="font-weight:800;font-size:15px">הגדרות</div></header>
+                  <div style="padding:16px 18px;background:var(--bg);display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-weight:700;font-size:13.5px">בני משק הבית</span><button style="all:unset;cursor:pointer;font-size:12px;font-weight:700;color:var(--accent-ink)">+ הזמנה</button></div>
+                      <sc-for list="{{ members }}" as="u" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)"><div style="width:38px;height:38px;border-radius:99px;background:{{ u.color }};display:grid;place-items:center;font-size:14px;font-weight:700;color:{{ u.tc }}">{{ u.icon }}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">{{ u.name }}</div><div style="font-size:11.5px;color:var(--mut)">{{ u.role }}</div></div><span class="msr" style="font-size:19px;color:var(--mut)">chevron_left</span></div></sc-for>
+                    </div>
+                    <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px">
+                      <div style="font-weight:700;font-size:13.5px;margin-bottom:12px">העדפות</div>
+                      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)"><span class="msr" style="font-size:19px;color:var(--mut)">payments</span><span style="flex:1;font-size:13px;font-weight:600">מטבע</span><span style="font-size:12.5px;color:var(--mut)">שקל · ₪</span></div>
+                      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)"><span class="msr" style="font-size:19px;color:var(--mut)">language</span><span style="flex:1;font-size:13px;font-weight:600">שפה</span><span style="font-size:12.5px;color:var(--mut)">עברית</span></div>
+                      <div style="display:flex;align-items:center;gap:10px;padding:10px 0"><span class="msr" style="font-size:19px;color:var(--mut)">contrast</span><span style="flex:1;font-size:13px;font-weight:600">מצב תצוגה</span><div style="display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:2px"><span style="font-size:11px;font-weight:700;padding:4px 10px;background:var(--surface);border-radius:99px;box-shadow:var(--sh-sm)">בהיר</span><span style="font-size:11px;font-weight:600;padding:4px 10px;color:var(--mut)">כהה</span><span style="font-size:11px;font-weight:600;padding:4px 10px;color:var(--mut)">מערכת</span></div></div>
+                    </div>
+                    <div style="grid-column:1 / -1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 18px">
+                      <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)"><span class="msr" style="font-size:19px;color:var(--mut)">notifications</span><span style="flex:1;font-size:13px;font-weight:600">התראות חכמות</span><span style="width:38px;height:22px;border-radius:99px;background:var(--accent);position:relative"><span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:99px;background:#fff"></span></span></div>
+                      <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)"><span class="msr" style="font-size:19px;color:var(--mut)">fingerprint</span><span style="flex:1;font-size:13px;font-weight:600">כניסה ביומטרית</span><span style="width:38px;height:22px;border-radius:99px;background:var(--accent);position:relative"><span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:99px;background:#fff"></span></span></div>
+                      <div style="display:flex;align-items:center;gap:10px;padding:12px 0"><span class="msr" style="font-size:19px;color:var(--mut)">cloud_sync</span><span style="flex:1;font-size:13px;font-weight:600">גיבוי וייצוא נתונים</span><span class="msr" style="font-size:19px;color:var(--mut)">chevron_left</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:11px;font-weight:700;color:var(--mut)">מובייל</span>
+              <div style="width:360px;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:34px;box-shadow:var(--sh-lg);overflow:hidden;display:flex;flex-direction:column;min-height:720px">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 22px 2px;font-size:12px;font-weight:700"><span>9:41</span><div style="display:flex;gap:5px"><span class="msr" style="font-size:14px">signal_cellular_alt</span><span class="msr" style="font-size:14px">wifi</span><span class="msr" style="font-size:14px">battery_full</span></div></div>
+                <div style="padding:6px 16px 10px"><div style="font-weight:800;font-size:19px">הגדרות</div></div>
+                <div style="flex:1;overflow:hidden;padding:0 14px 10px;display:flex;flex-direction:column;gap:11px">
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 15px"><sc-for list="{{ members }}" as="u" hint-placeholder-count="2"><div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)"><div style="width:38px;height:38px;border-radius:99px;background:{{ u.color }};display:grid;place-items:center;font-size:14px;font-weight:700;color:{{ u.tc }}">{{ u.icon }}</div><div style="flex:1"><div style="font-weight:700;font-size:13px">{{ u.name }}</div><div style="font-size:11px;color:var(--mut)">{{ u.role }}</div></div></div></sc-for><div style="display:flex;align-items:center;gap:8px;padding:11px 0;color:var(--accent-ink);font-weight:700;font-size:12.5px"><span class="msr" style="font-size:18px">person_add</span>הזמנת בן משפחה</div></div>
+                  <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:6px 15px"><div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)"><span class="msr" style="font-size:18px;color:var(--mut)">payments</span><span style="flex:1;font-size:12.5px;font-weight:600">מטבע</span><span style="font-size:12px;color:var(--mut)">₪</span></div><div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)"><span class="msr" style="font-size:18px;color:var(--mut)">contrast</span><span style="flex:1;font-size:12.5px;font-weight:600">מצב תצוגה</span><span style="font-size:12px;color:var(--mut)">בהיר</span></div><div style="display:flex;align-items:center;gap:10px;padding:11px 0"><span class="msr" style="font-size:18px;color:var(--mut)">notifications</span><span style="flex:1;font-size:12.5px;font-weight:600">התראות</span><span style="width:36px;height:21px;border-radius:99px;background:var(--accent);position:relative"><span style="position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:99px;background:#fff"></span></span></div></div>
+                </div>
+                <div style="display:flex;border-top:1px solid var(--line);background:var(--surface);padding:7px 6px 11px"><sc-for list="{{ mnavs.settings }}" as="m" hint-placeholder-count="5"><div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:{{ m.fg }}"><span class="msr" style="font-size:22px">{{ m.icon }}</span><span style="font-size:9.5px;font-weight:700">{{ m.label }}</span></div></sc-for></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREENS -->
+      </div>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme: 'light', sheet: null };
+  setThemeEv = (e) => this.setState({ theme: e.currentTarget.getAttribute('data-tk') });
+  openSheet = (e) => { const c = this._d().cats.find(x => x.name === e.currentTarget.getAttribute('data-cat')); this.setState({ sheet: c }); };
+  closeSheet = () => this.setState({ sheet: null });
+  stop = (e) => e.stopPropagation();
+
+  _d() {
+    if (this.__d) return this.__d;
+    const nis = n => '₪' + Math.abs(n).toLocaleString('en-US');
+    const signed = n => (n < 0 ? '−' : '+') + '₪' + Math.abs(n).toLocaleString('en-US');
+    const tints = [['#eaf3ec','#5f9d6a'],['#fbeee2','#c98a3c'],['#eef0fb','#5566c4'],['#fdecef','#c85870'],['#f3ecfb','#8a5bc0'],['#e9f4f8','#3b86a5'],['#f6f0e5','#a5883b']];
+    const recent = {
+      'קניות ומזון': [['שופרסל דיל',486,'היום'],['רמי לוי',312,'12 ביולי'],['ויקטורי',198,'8 ביולי']],
+      'מסעדות ומשלוחים': [['Wolt',164,'היום'],['גרג קפה',52,'אתמול'],['דומינו׳ס',118,'11 ביולי']],
+      'ילדים': [['חוג התעמלות',240,'9 ביולי'],['צעצועים ר',130,'6 ביולי']],
+      'תחבורה וחניה': [['פנגו',42,'אתמול'],['פז — דלק',300,'10 ביולי']],
+      'ביגוד': [['ZARA',290,'13 ביולי'],['קסטרו',360,'9 ביולי'],['נעליים גלי',290,'5 ביולי']],
+      'בילויים': [['סינמה סיטי',96,'12 ביולי'],['הצגת ילדים',280,'6 ביולי']],
+      'בריאות ופארם': [['סופר-פארם',286,'אתמול']],
+    };
+    const cats = [
+      {name:'קניות ומזון', short:'קניות', icon:'shopping_cart', spent:2180, budget:3500},
+      {name:'מסעדות ומשלוחים', short:'מסעדות', icon:'restaurant', spent:1640, budget:2000},
+      {name:'ילדים', short:'ילדים', icon:'child_care', spent:1320, budget:2500},
+      {name:'תחבורה וחניה', short:'תחבורה', icon:'directions_car', spent:680, budget:1200},
+      {name:'ביגוד', short:'ביגוד', icon:'checkroom', spent:940, budget:800},
+      {name:'בילויים', short:'בילויים', icon:'celebration', spent:890, budget:750},
+      {name:'בריאות ופארם', short:'בריאות', icon:'medication', spent:286, budget:1000},
+    ].map((c, i) => {
+      const pct = Math.round(c.spent / c.budget * 100);
+      const over = c.spent > c.budget, near = !over && pct >= 80;
+      const proj = over ? c.spent + 220 : Math.min(Math.round(c.spent * 1.85 / 10) * 10, Math.round(c.budget * 1.12));
+      return Object.assign({}, c, {
+        pct, over, notOver: !over, ringPct: Math.min(pct, 100), pctLabel: pct + '%', barWidth: Math.min(pct, 100) + '%',
+        ringColorVar: over ? '--warn' : near ? '--near' : '--pos',
+        statusIcon: over ? 'priority_high' : near ? 'warning' : 'check_circle',
+        statusLabel: over ? 'חריגה' : near ? 'קרוב לגבול' : 'תקין',
+        centerAmt: over ? '−' + nis(c.spent - c.budget) : nis(c.budget - c.spent),
+        centerLabel: over ? 'חריגה' : 'נותרו',
+        rangeStr: nis(c.spent) + ' / ' + nis(c.budget), budgetStr: nis(c.budget), spentStr: nis(c.spent), projStr: nis(proj),
+        overStr: '+' + nis(c.spent - c.budget), leftStr: nis(Math.max(c.budget - c.spent, 0)),
+        remSheet: over ? '−' + nis(c.spent - c.budget) : nis(c.budget - c.spent), remSheetLabel: over ? 'חריגה' : 'נותר',
+        tintBg: tints[i % tints.length][0], tintFg: tints[i % tints.length][1],
+        recent: (recent[c.name] || []).map(r => ({ name: r[0], amountStr: nis(r[1]), date: r[2] })),
+      });
+    });
+    const ringDemo = [cats[0], cats[1], cats[4]];
+
+    const navItems = [
+      {key:'dashboard', icon:'space_dashboard', label:'לוח חודשי'},
+      {key:'budget', icon:'donut_small', label:'תקציב חודשי'},
+      {key:'transactions', icon:'receipt_long', label:'תנועות'},
+      {key:'review', icon:'fact_check', label:'לבדיקה', badge:'3'},
+      {key:'planning', icon:'event_upcoming', label:'תכנון וצפי'},
+      {key:'split', icon:'compare_arrows', label:'בית מול עסק'},
+      {key:'assets', icon:'savings', label:'נכסים וחיסכון'},
+      {key:'insurance', icon:'shield', label:'ביטוחים'},
+      {key:'accounts', icon:'account_balance', label:'חשבונות וכרטיסים'},
+      {key:'settings', icon:'settings', label:'הגדרות'},
+    ];
+    const makeNav = a => navItems.map(n => Object.assign({}, n, {
+      active: n.key === a,
+      bg: n.key === a ? 'var(--accent-soft)' : 'transparent',
+      fg: n.key === a ? 'var(--accent-ink)' : 'var(--mut)',
+      ind: n.key === a ? 'var(--accent)' : 'transparent',
+    }));
+    const mItems = [
+      {key:'dashboard', icon:'space_dashboard', label:'לוח'},
+      {key:'budget', icon:'donut_small', label:'תקציב'},
+      {key:'transactions', icon:'receipt_long', label:'תנועות'},
+      {key:'assets', icon:'savings', label:'נכסים'},
+      {key:'more', icon:'menu', label:'עוד'},
+    ];
+    const makeM = a => mItems.map(n => Object.assign({}, n, { active: n.key === a, fg: n.key === a ? 'var(--accent-ink)' : 'var(--mut)' }));
+    const mMap = { dashboard:'dashboard', budget:'budget', transactions:'transactions', review:'transactions', planning:'more', split:'more', assets:'assets', insurance:'more', accounts:'more', settings:'more' };
+    const navs = {}, mnavs = {};
+    navItems.forEach(n => { navs[n.key] = makeNav(n.key); mnavs[n.key] = makeM(mMap[n.key]); });
+
+    const txns = [
+      {name:'שופרסל דיל', cat:'קניות ומזון', icon:'shopping_cart', amt:-486, date:'היום · 09:14', acct:'ויזה ••21', st:'ok'},
+      {name:'Wolt', cat:'מסעדות ומשלוחים', icon:'restaurant', amt:-164, date:'היום · 20:32', acct:'מקס ••88', st:'ok'},
+      {name:'העברת שכר — דניאל', cat:'הכנסה', icon:'south_west', amt:18200, date:'אתמול', acct:'עו״ש הפועלים', st:'in'},
+      {name:'פנגו', cat:'תחבורה וחניה', icon:'directions_car', amt:-42, date:'אתמול', acct:'ויזה ••21', st:'ok'},
+      {name:'סופר-פארם', cat:'בריאות ופארם', icon:'medication', amt:-286, date:'14 ביולי', acct:'מקס ••88', st:'ok'},
+      {name:'KSP', cat:'ללא קטגוריה', icon:'devices', amt:-1249, date:'14 ביולי', acct:'ויזה ••21', st:'review'},
+      {name:'הפניקס — ביטוח', cat:'ביטוח', icon:'shield', amt:-438, date:'13 ביולי', acct:'עו״ש הפועלים', st:'ok'},
+      {name:'חיוב לא מזוהה', cat:'לא מזוהה', icon:'help', amt:-317, date:'12 ביולי', acct:'ויזה ••21', st:'review'},
+    ].map(t => Object.assign({}, t, {
+      amtStr: t.amt < 0 ? nis(t.amt) : '+' + nis(t.amt),
+      income: t.amt > 0, review: t.st === 'review',
+      iconBg: t.amt > 0 ? 'var(--pos-soft)' : t.st === 'review' ? 'var(--warn-soft)' : 'var(--surface-2)',
+      iconFg: t.amt > 0 ? 'var(--pos-ink)' : t.st === 'review' ? 'var(--warn)' : 'var(--mut)',
+      amtColor: t.amt > 0 ? 'var(--pos-ink)' : 'var(--ink)',
+    }));
+
+    const review = [
+      {name:'חיוב לא מזוהה', note:'ויזה ••21 · 12 ביולי', amtStr:nis(317), reason:'סוחר לא זוהה', icon:'help', action:'זיהוי'},
+      {name:'KSP', note:'ויזה ••21 · 14 ביולי', amtStr:nis(1249), reason:'ללא קטגוריה', icon:'devices', action:'שיוך קטגוריה'},
+      {name:'העברה נכנסת', note:'עו״ש הפועלים · 11 ביולי', amtStr:nis(1200), reason:'לא סווגה', icon:'south_west', action:'סיווג'},
+      {name:'נטפליקס — חיוב כפול?', note:'מקס ••88 · 10 ביולי', amtStr:nis(56), reason:'חשד לכפילות', icon:'content_copy', action:'בדיקה'},
+    ];
+
+    const planning = [
+      {group:'קבוע', items:[
+        {name:'משכנתא', icon:'account_balance', amtStr:nis(6200), date:'1 בכל חודש', tag:'קבוע'},
+        {name:'צהרון ילדים', icon:'child_care', amtStr:nis(2300), date:'10 בכל חודש', tag:'קבוע'},
+        {name:'ביטוח רכב', icon:'directions_car', amtStr:nis(520), date:'20 בחודש', tag:'קבוע'},
+      ]},
+      {group:'משתנה · הערכה', items:[
+        {name:'חשמל', icon:'bolt', amtStr:'~' + nis(600), date:'28 ביולי', tag:'הערכה'},
+        {name:'מים', icon:'water_drop', amtStr:'~' + nis(180), date:'30 ביולי', tag:'הערכה'},
+        {name:'סופר (שבוע אחרון)', icon:'shopping_cart', amtStr:'~' + nis(900), date:'שבועי', tag:'הערכה'},
+      ]},
+      {group:'חד־פעמי', items:[
+        {name:'ארנונה (דו־חודשי)', icon:'home', amtStr:nis(610), date:'25 ביולי', tag:'חד־פעמי'},
+        {name:'חוג קיץ', icon:'sports_soccer', amtStr:nis(430), date:'22 ביולי', tag:'חד־פעמי'},
+      ]},
+    ];
+
+    const assets = [
+      {name:'דירת מגורים', sub:'נדל״ן · הערכת שווי', icon:'home', val:2450000, chip:'נכס'},
+      {name:'פנסיה — מנורה מבטחים', sub:'צבירה · תשואה 12 ח׳ +6.2%', icon:'elderly', val:412000, chip:'פנסיה'},
+      {name:'קרן השתלמות — אלטשולר', sub:'נזילה מ־2027', icon:'school', val:138500, chip:'חיסכון'},
+      {name:'תיק השקעות — IBI', sub:'מנוהל · +2.1% החודש', icon:'trending_up', val:96800, chip:'השקעות'},
+      {name:'קופת גמל להשקעה', sub:'הפקדה חודשית ₪1,500', icon:'savings', val:64200, chip:'חיסכון'},
+      {name:'חיסכון לכל ילד ×2', sub:'שני חשבונות', icon:'family_restroom', val:28400, chip:'חיסכון'},
+      {name:'פיקדון עו״ש', sub:'ריבית 4.1%', icon:'account_balance_wallet', val:52000, chip:'נזיל'},
+      {name:'משכנתא — יתרה', sub:'הפועלים · סיום 2039', icon:'real_estate_agent', val:-820000, chip:'התחייבות'},
+    ].map(a => Object.assign({}, a, { valStr: (a.val < 0 ? '−' : '') + nis(a.val), liab: a.val < 0 }));
+
+    const insurance = [
+      {name:'ביטוח חיים', co:'הפניקס', icon:'favorite', prem:220, cover:'₪1,500,000', st:'active'},
+      {name:'בריאות משלים', co:'כלל', icon:'health_and_safety', prem:180, cover:'כיסוי מלא', st:'active'},
+      {name:'רכב — מקיף', co:'הראל', icon:'directions_car', prem:310, cover:'יונדאי טוסון', st:'renew'},
+      {name:'דירה — מבנה ותכולה', co:'מגדל', icon:'home', prem:95, cover:'₪1,900,000', st:'active'},
+      {name:'משכנתא', co:'הפניקס', icon:'account_balance', prem:140, cover:'יתרת הלוואה', st:'active'},
+      {name:'אובדן כושר עבודה', co:'מנורה', icon:'work', prem:88, cover:'75% מהשכר', st:'active'},
+    ].map(p => Object.assign({}, p, {
+      premStr: nis(p.prem) + '/ח׳',
+      stLabel: p.st === 'renew' ? 'חידוש 20/08' : 'פעיל',
+      stIcon: p.st === 'renew' ? 'update' : 'check_circle',
+      stColor: p.st === 'renew' ? '--near' : '--pos',
+      stBg: p.st === 'renew' ? 'var(--near-soft)' : 'var(--pos-soft)',
+    }));
+
+    const accounts = [
+      {name:'בנק הפועלים', sub:'עו״ש משותף · ••4821', icon:'account_balance', bal:nis(23450), st:'ok', type:'בנק'},
+      {name:'בנק לאומי', sub:'חשבון עסק · ••7710', icon:'account_balance', bal:nis(18900), st:'ok', type:'בנק'},
+      {name:'ויזה כאל', sub:'אשראי · ••2145', icon:'credit_card', bal:nis(8240), st:'ok', type:'כרטיס'},
+      {name:'מקס (מאסטרקארד)', sub:'אשראי · ••8890', icon:'credit_card', bal:nis(3120), st:'sync', type:'כרטיס'},
+      {name:'אמריקן אקספרס', sub:'אשראי · ••0032', icon:'credit_card', bal:'—', st:'error', type:'כרטיס'},
+    ].map(a => Object.assign({}, a, {
+      stLabel: a.st === 'ok' ? 'מסונכרן' : a.st === 'sync' ? 'מסנכרן…' : 'שגיאת חיבור',
+      stIcon: a.st === 'ok' ? 'check_circle' : a.st === 'sync' ? 'progress_activity' : 'error',
+      stColor: a.st === 'ok' ? '--pos' : a.st === 'sync' ? '--mut' : '--warn',
+      stBg: a.st === 'ok' ? 'var(--pos-soft)' : a.st === 'sync' ? 'var(--surface-2)' : 'var(--warn-soft)',
+      spin: a.st === 'sync', err: a.st === 'error',
+      spinStyle: a.st === 'sync' ? 'animation:spin 1.2s linear infinite' : '',
+      balLabel: a.type === 'בנק' ? 'יתרה' : 'חיוב צפוי',
+    }));
+
+    const members = [
+      {name:'אורן כהן', role:'בעלים · גישה מלאה', icon:'א', color:'#cdd9d5', tc:'#3a5', me:true},
+      {name:'דניאל כהן', role:'בעלים · גישה מלאה', icon:'ד', color:'#d8d0c4', tc:'#653', me:false},
+    ];
+
+    const tokens = [
+      {n:'bg', v:'--bg'},{n:'surface', v:'--surface'},{n:'surface-2', v:'--surface-2'},{n:'line', v:'--line'},
+      {n:'ink', v:'--ink'},{n:'mut', v:'--mut'},{n:'accent', v:'--accent'},{n:'accent-soft', v:'--accent-soft'},
+      {n:'positive', v:'--pos'},{n:'near', v:'--near'},{n:'warning', v:'--warn'},{n:'accent-ink', v:'--accent-ink'},
+    ];
+    const type = [
+      {n:'Display 30', s:'30px', w:'800', sample:'₪28,850'},
+      {n:'Title 22', s:'22px', w:'800', sample:'לוח חודשי'},
+      {n:'Heading 18', s:'18px', w:'700', sample:'תקציב לפי קטגוריה'},
+      {n:'Subhead 15', s:'15px', w:'700', sample:'תנועות אחרונות'},
+      {n:'Body 14', s:'14px', w:'400', sample:'הועברו ₪18,400 מתוך התקציב'},
+      {n:'Caption 12', s:'12px', w:'600', sample:'עודכן לפני 6 דקות'},
+    ];
+    const spacing = [{n:'4', px:'4px'},{n:'8', px:'8px'},{n:'12', px:'12px'},{n:'16', px:'16px'},{n:'20', px:'20px'},{n:'24', px:'24px'},{n:'32', px:'32px'}];
+    const radii = [{n:'sm 8', px:'8px'},{n:'md 12', px:'12px'},{n:'lg 16', px:'16px'},{n:'xl 22', px:'22px'},{n:'pill', px:'999px'}];
+
+    this.__d = { cats, ringDemo, navs, mnavs, txns, review, planning, assets, insurance, accounts, members, tokens, type, spacing, radii };
+    return this.__d;
+  }
+
+  renderVals() {
+    const d = this._d();
+    const theme = this.state.theme;
+    const tset = [
+      {key:'light', label:'בהיר', icon:'light_mode'},
+      {key:'system', label:'מערכת', icon:'brightness_auto'},
+      {key:'dark', label:'כהה', icon:'dark_mode'},
+    ].map(t => Object.assign({}, t, {
+      active: t.key === theme,
+      bg: t.key === theme ? 'var(--surface)' : 'transparent',
+      fg: t.key === theme ? 'var(--ink)' : 'var(--mut)',
+      sh: t.key === theme ? 'var(--sh-sm)' : 'none',
+    }));
+    return Object.assign({}, d, {
+      theme, tset, sheet: this.state.sheet,
+      setThemeEv: this.setThemeEv, openSheet: this.openSheet, closeSheet: this.closeSheet, stop: this.stop,
+    });
+  }
+}
+</script>
+</body>
+</html>

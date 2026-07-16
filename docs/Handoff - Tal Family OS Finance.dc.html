@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Assistant',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}a:hover{color:var(--accent-ink)}
+.msr{font-family:'Material Symbols Rounded';font-weight:normal;line-height:1;-webkit-font-feature-settings:'liga';font-feature-settings:'liga';display:inline-block;vertical-align:middle}
+[data-theme="light"],[data-theme="system"]{--bg:#f3f5f4;--surface:#ffffff;--surface-2:#eef2f0;--surface-3:#e4eae7;--line:rgba(20,45,42,.11);--ink:#1b2a28;--ink-2:#3a4a47;--mut:#6a7a77;--accent:#3f7d9e;--accent-ink:#2b5f7f;--accent-soft:#e7eff4;--pos:#3f8f6d;--pos-ink:#2c6f52;--pos-soft:#e6f1eb;--near:#a9772a;--near-soft:#f5ecdb;--warn:#b5623a;--warn-soft:#f5e6dd;--code:#eef2f0;--sh-sm:0 1px 2px rgba(20,40,38,.07);--sh-md:0 4px 18px rgba(20,40,38,.09);--sh-lg:0 16px 46px rgba(20,40,38,.14);}
+[data-theme="dark"]{--bg:#0e1513;--surface:#161f1d;--surface-2:#1f2a27;--surface-3:#293632;--line:rgba(255,255,255,.11);--ink:#eef3f1;--ink-2:#c6d2ce;--mut:#8a9f9a;--accent:#66a9cb;--accent-ink:#9fcadd;--accent-soft:#1a2e38;--pos:#5cb089;--pos-ink:#8fceae;--pos-soft:#152b22;--near:#d3a24f;--near-soft:#312a19;--warn:#d0855b;--warn-soft:#33231b;--code:#0b1211;--sh-sm:0 1px 2px rgba(0,0,0,.4);--sh-md:0 4px 18px rgba(0,0,0,.45);--sh-lg:0 16px 46px rgba(0,0,0,.55);}
+@media(prefers-color-scheme:dark){[data-theme="system"]{--bg:#0e1513;--surface:#161f1d;--surface-2:#1f2a27;--surface-3:#293632;--line:rgba(255,255,255,.11);--ink:#eef3f1;--ink-2:#c6d2ce;--mut:#8a9f9a;--accent:#66a9cb;--accent-ink:#9fcadd;--accent-soft:#1a2e38;--pos:#5cb089;--pos-ink:#8fceae;--pos-soft:#152b22;--near:#d3a24f;--near-soft:#312a19;--warn:#d0855b;--warn-soft:#33231b;--code:#0b1211;--sh-sm:0 1px 2px rgba(0,0,0,.4);--sh-md:0 4px 18px rgba(0,0,0,.45);--sh-lg:0 16px 46px rgba(0,0,0,.55);}}
+</style>
+</helmet>
+
+<div dir="rtl" data-theme="{{ theme }}" style="background:var(--bg);color:var(--ink);min-height:100vh;font-family:'Assistant',sans-serif">
+
+  <div style="position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)">
+    <div style="max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:14px">
+      <div style="width:30px;height:30px;border-radius:9px;background:var(--accent);display:grid;place-items:center"><span class="msr" style="font-size:19px;color:#fff">description</span></div>
+      <div style="flex:1"><div style="font-weight:800;font-size:15px;line-height:1.1">The Tal Family OS · מודול פיננסים</div><div style="font-size:11px;color:var(--mut)">מסמך אפיון עיצוב והעברה לפיתוח · v1.0 · יולי 2025</div></div>
+      <div style="display:flex;align-items:center;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:3px">
+        <sc-for list="{{ tset }}" as="t" hint-placeholder-count="3"><button data-tk="{{ t.key }}" onClick="{{ setThemeEv }}" title="{{ t.label }}" style="all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px;background:{{ t.bg }};color:{{ t.fg }};box-shadow:{{ t.sh }}"><span class="msr" style="font-size:16px">{{ t.icon }}</span>{{ t.label }}</button></sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1280px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:232px 1fr;gap:36px;align-items:start">
+
+    <!-- TOC -->
+    <aside style="position:sticky;top:78px;padding:26px 0;max-height:calc(100vh - 78px);overflow:auto">
+      <div style="font-size:11px;font-weight:800;color:var(--mut);letter-spacing:.05em;margin-bottom:12px">תוכן העניינים</div>
+      <nav style="display:flex;flex-direction:column;gap:1px">
+        <sc-for list="{{ toc }}" as="s" hint-placeholder-count="11"><a href="#{{ s.id }}" style="display:flex;gap:9px;align-items:baseline;padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink-2)"><span style="font-size:10.5px;font-weight:800;color:var(--accent-ink);min-width:16px">{{ s.num }}</span>{{ s.title }}</a></sc-for>
+      </nav>
+      <div style="margin-top:18px;padding:12px 13px;background:var(--surface);border:1px solid var(--line);border-radius:12px"><div style="font-size:11px;color:var(--mut);line-height:1.5">מסמך זה מלווה את קבצי העיצוב <b>Design System & MVP</b> ו־<b>Financial Dashboard Directions</b>.</div></div>
+    </aside>
+
+    <main style="padding:26px 0 100px;min-width:0">
+
+      <!-- COVER -->
+      <div style="background:linear-gradient(160deg,var(--accent-soft),var(--surface));border:1px solid var(--line);border-radius:18px;padding:30px 32px;margin-bottom:34px;box-shadow:var(--sh-md)">
+        <div style="font-size:12px;font-weight:800;color:var(--accent-ink);letter-spacing:.04em;margin-bottom:10px">מפרט מוצר · Product Design Specification</div>
+        <h1 style="margin:0 0 12px;font-size:32px;font-weight:800;letter-spacing:-.01em;line-height:1.1">The Tal Family OS — מודול פיננסים<br>אפיון עיצוב מלא והעברה לפיתוח</h1>
+        <p style="margin:0;max-width:680px;font-size:15px;line-height:1.65;color:var(--ink-2)">מסמך זה מגדיר את חוויית המשתמש, מערכת העיצוב, הרכיבים, כללי ה־UX והנגישות של דשבורד ניהול הכספים המשפחתי של משפחת טל. הכיוון החזותי הנבחר: <b>Calm Financial</b> — רגוע, אמין, RTL־first בעברית, מובייל תחילה עם דסקטופ מלא. הטון: שקט, בהיר, לא שיפוטי.</p>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:18px">
+          <span style="font-size:12px;font-weight:700;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 13px">14 מסכים</span>
+          <span style="font-size:12px;font-weight:700;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 13px">24 רכיבים</span>
+          <span style="font-size:12px;font-weight:700;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 13px">Light · Dark · System</span>
+          <span style="font-size:12px;font-weight:700;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 13px">RTL · עברית</span>
+          <span style="font-size:12px;font-weight:700;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:6px 13px">נגישות AA</span>
+        </div>
+      </div>
+
+      <!-- ============ 1 · PRODUCT OVERVIEW ============ -->
+      <section id="overview" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:20px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">01</span><h2 style="margin:0;font-size:22px;font-weight:800">סקירת מוצר</h2></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--sh-sm)">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin-bottom:12px"><span class="msr" style="font-size:19px;color:var(--accent-ink)">flag</span>מטרות המוצר</div>
+            <sc-for list="{{ ov.goals }}" as="g" hint-placeholder-count="5"><div style="display:flex;gap:8px;padding:6px 0;font-size:13px;line-height:1.5;color:var(--ink-2)"><span class="msr" style="font-size:16px;color:var(--pos-ink);margin-top:1px">check</span><span>{{ g }}</span></div></sc-for>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--sh-sm)">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin-bottom:12px"><span class="msr" style="font-size:19px;color:var(--accent-ink)">group</span>קהל יעד</div>
+            <sc-for list="{{ ov.users }}" as="u" hint-placeholder-count="4"><div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="font-weight:700;font-size:13px">{{ u.t }}</div><div style="font-size:12px;color:var(--mut);line-height:1.5">{{ u.d }}</div></div></sc-for>
+          </div>
+          <div style="grid-column:1 / -1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--sh-sm)">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin-bottom:12px"><span class="msr" style="font-size:19px;color:var(--accent-ink)">bolt</span>תרחישי שימוש עיקריים</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 22px"><sc-for list="{{ ov.useCases }}" as="c" hint-placeholder-count="6"><div style="display:flex;gap:8px;padding:5px 0;font-size:13px;line-height:1.5;color:var(--ink-2)"><span style="color:var(--accent-ink);font-weight:800">←</span><span>{{ c }}</span></div></sc-for></div>
+          </div>
+          <div style="background:var(--pos-soft);border:1px solid color-mix(in srgb,var(--pos) 26%,transparent);border-radius:14px;padding:18px 20px">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin-bottom:12px;color:var(--pos-ink)"><span class="msr" style="font-size:19px">check_circle</span>בתחום ה־MVP</div>
+            <sc-for list="{{ ov.mvpScope }}" as="m" hint-placeholder-count="6"><div style="display:flex;gap:8px;padding:5px 0;font-size:12.5px;line-height:1.45;color:var(--ink)"><span class="msr" style="font-size:15px;color:var(--pos-ink);margin-top:1px">done</span><span>{{ m }}</span></div></sc-for>
+          </div>
+          <div style="background:var(--surface-2);border:1px dashed color-mix(in srgb,var(--mut) 40%,transparent);border-radius:14px;padding:18px 20px">
+            <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin-bottom:12px;color:var(--mut)"><span class="msr" style="font-size:19px">schedule</span>מחוץ לתחום (מכוון) — מודולים עתידיים</div>
+            <sc-for list="{{ ov.outOfScope }}" as="o" hint-placeholder-count="6"><div style="display:flex;gap:8px;padding:5px 0;font-size:12.5px;line-height:1.45;color:var(--ink-2)"><span class="msr" style="font-size:15px;color:var(--mut);margin-top:1px">arrow_back</span><span>{{ o }}</span></div></sc-for>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 2 · INFORMATION ARCHITECTURE ============ -->
+      <section id="ia" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:20px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">02</span><h2 style="margin:0;font-size:22px;font-weight:800">ארכיטקטורת מידע</h2></div>
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:14px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--sh-sm)">
+            <div style="font-weight:800;font-size:14px;margin-bottom:14px">מבנה ניווט מלא</div>
+            <sc-for list="{{ ia.tree }}" as="n" hint-placeholder-count="10">
+              <div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--line)">
+                <span style="width:26px;height:26px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:16px;color:var(--mut)">{{ n.icon }}</span></span>
+                <span style="flex:1;font-size:13px;font-weight:600">{{ n.label }}</span>
+                <sc-if value="{{ n.children }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:var(--mut)">{{ n.children }}</span></sc-if>
+                <span style="font-size:10.5px;font-weight:700;color:var(--mut);background:var(--surface-2);border-radius:5px;padding:1px 7px">{{ n.tier }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--sh-sm)">
+              <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;margin-bottom:10px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">desktop_windows</span>סרגל צד — דסקטופ</div>
+              <div style="font-size:12px;color:var(--ink-2);line-height:1.6">סרגל קבוע בצד ימין (RTL), רוחב 206px. לוגו למעלה, 10 פריטי ניווט ראשיים עם אינדיקטור פעיל (פס 3px + רקע רך + טקסט מודגש), תג התראה על "לבדיקה", ובתחתית מתג משתמש/משק בית. גלישה פנימית בלבד; הכותרת העליונה נשארת דביקה.</div>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--sh-sm)">
+              <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:13.5px;margin-bottom:10px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">smartphone</span>ניווט תחתון — מובייל</div>
+              <div style="font-size:12px;color:var(--ink-2);line-height:1.6">5 פריטים: לוח · תקציב · תנועות · נכסים · עוד. "עוד" פותח גיליון עם שאר המסכים (תכנון, בית/עסק, עסק דניאל, ביטוחים, יעדים, חיסכון ילדים, חשבונות, סיכום יומי, הגדרות). פריט פעיל בצבע accent-ink + אייקון מלא. גובה יעד מגע ≥ 44px.</div>
+            </div>
+          </div>
+          <div style="grid-column:1 / -1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--sh-sm)">
+            <div style="font-weight:800;font-size:14px;margin-bottom:6px">נקודות כניסה והתנהגות ניווט חזרה</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 22px">
+              <sc-for list="{{ ia.nav }}" as="r" hint-placeholder-count="6"><div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.5"><span style="font-weight:700;min-width:120px;color:var(--ink)">{{ r.k }}</span><span style="color:var(--ink-2)">{{ r.v }}</span></div></sc-for>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 3 · SCREEN INVENTORY ============ -->
+      <section id="screens" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:8px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">03</span><h2 style="margin:0;font-size:22px;font-weight:800">מצאי מסכים מלא</h2></div>
+        <p style="font-size:12.5px;color:var(--mut);margin:0 0 18px">14 מסכים. לכל מסך: מטרה, יעד משתמש, מקטעים, פעולות, ומצבי ריק/טעינה/שגיאה + התנהגות רספונסיבית.</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ screens }}" as="s" hint-placeholder-count="14">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-sm);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:11px;padding:13px 18px;background:var(--surface-2);border-bottom:1px solid var(--line)">
+                <span style="width:28px;height:28px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:800;flex:none">{{ s.n }}</span>
+                <span style="width:30px;height:30px;border-radius:8px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:18px;color:var(--accent-ink)">{{ s.icon }}</span></span>
+                <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:15px">{{ s.name }}</div><div style="font-size:11.5px;color:var(--mut)">{{ s.route }}</div></div>
+              </div>
+              <div style="padding:16px 18px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 22px;margin-bottom:14px">
+                  <div><div style="font-size:11px;font-weight:800;color:var(--mut);margin-bottom:3px">מטרה</div><div style="font-size:12.5px;line-height:1.5;color:var(--ink-2)">{{ s.purpose }}</div></div>
+                  <div><div style="font-size:11px;font-weight:800;color:var(--mut);margin-bottom:3px">יעד המשתמש</div><div style="font-size:12.5px;line-height:1.5;color:var(--ink-2)">{{ s.goal }}</div></div>
+                </div>
+                <div style="margin-bottom:14px"><div style="font-size:11px;font-weight:800;color:var(--mut);margin-bottom:6px">מקטעים עיקריים</div><div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ s.sections }}" as="x" hint-placeholder-count="4"><span style="font-size:11.5px;font-weight:600;background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:4px 10px">{{ x }}</span></sc-for></div></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 22px;margin-bottom:14px">
+                  <div><div style="font-size:11px;font-weight:800;color:var(--accent-ink);margin-bottom:5px">פעולות ראשיות</div><sc-for list="{{ s.primary }}" as="p" hint-placeholder-count="2"><div style="display:flex;gap:6px;font-size:12px;line-height:1.5;color:var(--ink-2);padding:2px 0"><span class="msr" style="font-size:14px;color:var(--accent-ink)">radio_button_checked</span>{{ p }}</div></sc-for></div>
+                  <div><div style="font-size:11px;font-weight:800;color:var(--mut);margin-bottom:5px">פעולות משניות</div><sc-for list="{{ s.secondary }}" as="p" hint-placeholder-count="2"><div style="display:flex;gap:6px;font-size:12px;line-height:1.5;color:var(--ink-2);padding:2px 0"><span class="msr" style="font-size:14px;color:var(--mut)">radio_button_unchecked</span>{{ p }}</div></sc-for></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+                  <div style="background:var(--surface-2);border-radius:10px;padding:11px 12px"><div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--mut);margin-bottom:4px"><span class="msr" style="font-size:14px">inbox</span>מצב ריק</div><div style="font-size:11.5px;line-height:1.45;color:var(--ink-2)">{{ s.empty }}</div></div>
+                  <div style="background:var(--surface-2);border-radius:10px;padding:11px 12px"><div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--mut);margin-bottom:4px"><span class="msr" style="font-size:14px">hourglass_top</span>טעינה</div><div style="font-size:11.5px;line-height:1.45;color:var(--ink-2)">{{ s.loading }}</div></div>
+                  <div style="background:var(--warn-soft);border-radius:10px;padding:11px 12px"><div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--warn);margin-bottom:4px"><span class="msr" style="font-size:14px">error</span>שגיאה</div><div style="font-size:11.5px;line-height:1.45;color:var(--ink-2)">{{ s.error }}</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div style="border:1px solid var(--line);border-radius:10px;padding:11px 13px"><div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--accent-ink);margin-bottom:4px"><span class="msr" style="font-size:14px">desktop_windows</span>פריסת דסקטופ</div><div style="font-size:11.5px;line-height:1.5;color:var(--ink-2)">{{ s.desktop }}</div></div>
+                  <div style="border:1px solid var(--line);border-radius:10px;padding:11px 13px"><div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--accent-ink);margin-bottom:4px"><span class="msr" style="font-size:14px">smartphone</span>פריסת מובייל</div><div style="font-size:11.5px;line-height:1.5;color:var(--ink-2)">{{ s.mobile }}</div></div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- ============ 4 · TOKENS ============ -->
+      <section id="tokens" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:8px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">04</span><h2 style="margin:0;font-size:22px;font-weight:800">מערכת עיצוב וטוקנים</h2></div>
+        <p style="font-size:12.5px;color:var(--mut);margin:0 0 18px">ערכים מדויקים ל־Light ו־Dark. System עוקב אחר העדפת מערכת ההפעלה. כל הצבעים הם CSS custom properties תחת <code style="background:var(--code);border-radius:4px;padding:1px 5px">[data-theme]</code>.</p>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-sm);overflow:hidden;margin-bottom:14px">
+          <div style="display:grid;grid-template-columns:1.4fr 1.6fr auto auto;gap:0;font-size:11px;font-weight:800;color:var(--mut);background:var(--surface-2);padding:10px 16px;border-bottom:1px solid var(--line)"><span>טוקן</span><span>תפקיד</span><span style="width:150px">Light</span><span style="width:150px">Dark</span></div>
+          <sc-for list="{{ colorRows }}" as="c" hint-placeholder-count="16">
+            <div style="display:grid;grid-template-columns:1.4fr 1.6fr auto auto;align-items:center;gap:0;padding:8px 16px;border-bottom:1px solid var(--line)">
+              <span style="font-family:ui-monospace,monospace;font-size:11.5px;font-weight:700">{{ c.v }}</span>
+              <span style="font-size:12.5px;color:var(--ink-2)">{{ c.role }}</span>
+              <span style="width:150px;display:flex;align-items:center;gap:7px"><span style="width:22px;height:22px;border-radius:6px;background:{{ c.l }};border:1px solid var(--line);flex:none"></span><span style="font-family:ui-monospace,monospace;font-size:10.5px;color:var(--mut)">{{ c.l }}</span></span>
+              <span style="width:150px;display:flex;align-items:center;gap:7px"><span style="width:22px;height:22px;border-radius:6px;background:{{ c.d }};border:1px solid var(--line);flex:none"></span><span style="font-family:ui-monospace,monospace;font-size:10.5px;color:var(--mut)">{{ c.d }}</span></span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-sm);padding:16px 18px">
+            <div style="font-weight:800;font-size:14px;margin-bottom:12px">טיפוגרפיה · Assistant (עברית) + מספרים tabular</div>
+            <sc-for list="{{ typeRows }}" as="t" hint-placeholder-count="8"><div style="display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="font-weight:{{ t.w }};font-size:{{ t.size }};line-height:1;min-width:120px">Aa אבג</span><div style="flex:1"><div style="font-size:12px;font-weight:700">{{ t.n }} · {{ t.size }}/{{ t.w }}</div><div style="font-size:11px;color:var(--mut)">{{ t.use }}</div></div></div></sc-for>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-sm);padding:16px 18px">
+            <div style="font-weight:800;font-size:14px;margin-bottom:12px">סקאלות מערכת</div>
+            <sc-for list="{{ scaleRows }}" as="s" hint-placeholder-count="7"><div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="font-weight:700;font-size:12.5px;margin-bottom:2px">{{ s.t }}</div><div style="font-family:ui-monospace,monospace;font-size:11.5px;color:var(--accent-ink);margin-bottom:2px">{{ s.items }}</div><div style="font-size:11px;color:var(--mut);line-height:1.45">{{ s.note }}</div></div></sc-for>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 5 · COMPONENTS ============ -->
+      <section id="components" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:8px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">05</span><h2 style="margin:0;font-size:22px;font-weight:800">מפרט רכיבים</h2></div>
+        <p style="font-size:12.5px;color:var(--mut);margin:0 0 18px">24 רכיבים לשימוש חוזר. לכל רכיב: מטרה, אנטומיה, וריאנטים, גדלים, מצבים, props, נגישות, התנהגות מובייל וכללי שימוש.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <sc-for list="{{ components }}" as="c" hint-placeholder-count="24">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-sm);padding:15px 17px">
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:11px"><span style="width:30px;height:30px;border-radius:8px;background:var(--accent-soft);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:18px;color:var(--accent-ink)">{{ c.icon }}</span></span><div style="font-weight:800;font-size:14px">{{ c.name }}</div></div>
+              <div style="font-size:12px;color:var(--ink-2);line-height:1.5;margin-bottom:10px">{{ c.purpose }}</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div style="display:flex;gap:7px"><span style="font-size:10.5px;font-weight:800;color:var(--mut);min-width:62px;padding-top:1px">אנטומיה</span><span style="font-size:11.5px;color:var(--ink-2);line-height:1.45">{{ c.anatomy }}</span></div>
+                <div style="display:flex;gap:7px;align-items:flex-start"><span style="font-size:10.5px;font-weight:800;color:var(--mut);min-width:62px;padding-top:3px">וריאנטים</span><span style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ c.variants }}" as="v" hint-placeholder-count="3"><span style="font-size:10.5px;font-weight:600;background:var(--surface-2);border-radius:5px;padding:2px 7px">{{ v }}</span></sc-for></span></div>
+                <div style="display:flex;gap:7px;align-items:flex-start"><span style="font-size:10.5px;font-weight:800;color:var(--mut);min-width:62px;padding-top:3px">גדלים</span><span style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ c.sizes }}" as="v" hint-placeholder-count="2"><span style="font-size:10.5px;font-weight:600;background:var(--surface-2);border-radius:5px;padding:2px 7px">{{ v }}</span></sc-for></span></div>
+                <div style="display:flex;gap:7px;align-items:flex-start"><span style="font-size:10.5px;font-weight:800;color:var(--mut);min-width:62px;padding-top:3px">מצבים</span><span style="display:flex;flex-wrap:wrap;gap:4px"><sc-for list="{{ c.states }}" as="v" hint-placeholder-count="4"><span style="font-size:10.5px;font-weight:600;background:var(--surface-2);border-radius:5px;padding:2px 7px">{{ v }}</span></sc-for></span></div>
+                <div style="display:flex;gap:7px"><span style="font-size:10.5px;font-weight:800;color:var(--mut);min-width:62px;padding-top:1px">Props</span><span style="font-size:11px;color:var(--accent-ink);font-family:ui-monospace,monospace;line-height:1.5">{{ c.props }}</span></div>
+                <div style="display:flex;gap:7px"><span style="font-size:10.5px;font-weight:800;color:var(--pos-ink);min-width:62px;padding-top:1px">נגישות</span><span style="font-size:11.5px;color:var(--ink-2);line-height:1.45">{{ c.a11y }}</span></div>
+                <div style="display:flex;gap:7px"><span style="font-size:10.5px;font-weight:800;color:var(--mut);min-width:62px;padding-top:1px">מובייל</span><span style="font-size:11.5px;color:var(--ink-2);line-height:1.45">{{ c.mobile }}</span></div>
+                <div style="display:flex;gap:7px;background:var(--surface-2);border-radius:8px;padding:7px 9px;margin-top:2px"><span class="msr" style="font-size:14px;color:var(--accent-ink);flex:none">tips_and_updates</span><span style="font-size:11.5px;color:var(--ink-2);line-height:1.45">{{ c.usage }}</span></div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- ============ 6 · UX RULES ============ -->
+      <section id="uxrules" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:18px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">06</span><h2 style="margin:0;font-size:22px;font-weight:800">כללי UX</h2></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <sc-for list="{{ ux }}" as="r" hint-placeholder-count="11">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-sm);padding:14px 16px">
+              <div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13px;margin-bottom:7px"><span class="msr" style="font-size:16px;color:var(--accent-ink)">rule</span>{{ r.q }}</div>
+              <div style="font-size:12px;line-height:1.55;color:var(--ink-2)">{{ r.a }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- ============ 7 · ACCESSIBILITY ============ -->
+      <section id="a11y" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:18px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">07</span><h2 style="margin:0;font-size:22px;font-weight:800">נגישות</h2></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;margin-bottom:9px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">keyboard</span>ניווט מקלדת</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">כל פעולה נגישה ב־Tab בסדר לוגי RTL (ימין→שמאל). Enter/Space מפעילים; Esc סוגר גיליון/מודאל/תפריט; חצים לניווט בטאבים, תפריטים ולוח תאריכים. מלכודת פוקוס בכל שכבה צפה, עם החזרת פוקוס לטריגר בסגירה.</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;margin-bottom:9px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">crop_free</span>מצבי פוקוס</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">טבעת פוקוס נראית (2px accent + הילה) על כל אלמנט אינטראקטיבי, גם בכהה. <code style="background:var(--code);border-radius:4px;padding:1px 5px">:focus-visible</code> בלבד — לא להסתיר outline. ניגודיות טבעת ≥3:1 מול הרקע.</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;margin-bottom:9px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">record_voice_over</span>תוויות לקורא מסך</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">טבעת קטגוריה: "קניות ומזון, נוצל 62 אחוז, נותרו 1,320 שקלים, תקין". סכומים נקראים עם מטבע. אייקונים דקורטיביים <code style="background:var(--code);border-radius:4px;padding:1px 5px">aria-hidden</code>. שינויים חיים (סנכרון/סיווג) ב־<code style="background:var(--code);border-radius:4px;padding:1px 5px">aria-live</code> מנומס.</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;margin-bottom:9px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">contrast</span>ניגודיות צבע</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">טקסט גוף ≥4.5:1, טקסט גדול ותגים ≥3:1 — נבדק בשני המצבים. הזוגות ink/surface, mut/surface ו־*-ink/*-soft עומדים ב־AA. סכומים חשובים תמיד ב־ink מלא.</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;margin-bottom:9px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">touch_app</span>יעדי מגע ותנועה מופחתת</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">יעד מגע מינימלי 44×44px עם מרווח בין יעדים. <code style="background:var(--code);border-radius:4px;padding:1px 5px">prefers-reduced-motion</code> מבטל slide/scale ומשאיר fade עדין בלבד; ספינרים הופכים לאינדיקטור סטטי.</div></div>
+          <div style="background:var(--pos-soft);border:1px solid color-mix(in srgb,var(--pos) 26%,transparent);border-radius:12px;padding:15px 17px"><div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;margin-bottom:9px;color:var(--pos-ink)"><span class="msr" style="font-size:18px">block</span>סטטוס לעולם לא בצבע בלבד</div><div style="font-size:12px;line-height:1.6;color:var(--ink)">כל מצב פיננסי (תקין/קרוב/חריגה/הכנסה/הוצאה/סנכרון/שגיאה) נמסר בשילוב <b>אייקון + מילה + צבע</b>, ולעתים גם דפוס (מקווקו לעתידי) וסימן (+/−). המשמעות מובנת גם בגווני אפור מלא ובעיוורון צבעים.</div></div>
+          <div style="grid-column:1 / -1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="display:flex;align-items:center;gap:7px;font-weight:800;font-size:13.5px;margin-bottom:9px"><span class="msr" style="font-size:18px;color:var(--accent-ink)">format_textdirection_r_to_l</span>נגישות RTL</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)"><code style="background:var(--code);border-radius:4px;padding:1px 5px">dir="rtl"</code> ברמת המסמך; מאפייני לוגיקה (<code style="background:var(--code);border-radius:4px;padding:1px 5px">inset-inline</code>, <code style="background:var(--code);border-radius:4px;padding:1px 5px">margin-inline</code>) בלבד — לא left/right. אייקוני כיוון (חצים, chevron) מתהפכים; "הבא" בזמן = שמאל. סכומים ומספרים ב־LTR מוטמעים (<code style="background:var(--code);border-radius:4px;padding:1px 5px">₪12,450</code>) בתוך זרימת RTL, מיושרים לתחילת השורה. טבעות SVG מסובבות עם <code style="background:var(--code);border-radius:4px;padding:1px 5px">scaleX(-1)</code> כדי שההתקדמות תרוץ בכיוון הנכון.</div></div>
+        </div>
+      </section>
+
+      <!-- ============ 8 · RESPONSIVE ============ -->
+      <section id="responsive" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:18px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">08</span><h2 style="margin:0;font-size:22px;font-weight:800">התנהגות רספונסיבית</h2></div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-sm);overflow:hidden;margin-bottom:14px">
+          <div style="display:grid;grid-template-columns:120px 1fr 1fr 1fr;font-size:11px;font-weight:800;color:var(--mut);background:var(--surface-2);padding:10px 16px;border-bottom:1px solid var(--line)"><span>היבט</span><span>מובייל &lt;640</span><span>טאבלט 640–1023</span><span>דסקטופ ≥1024</span></div>
+          <sc-for list="{{ respRows }}" as="r" hint-placeholder-count="6"><div style="display:grid;grid-template-columns:120px 1fr 1fr 1fr;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:11.5px;line-height:1.45"><span style="font-weight:700">{{ r.k }}</span><span style="color:var(--ink-2)">{{ r.m }}</span><span style="color:var(--ink-2)">{{ r.t }}</span><span style="color:var(--ink-2)">{{ r.d }}</span></div></sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13px;margin-bottom:7px">Large desktop ≥1440</div><div style="font-size:12px;line-height:1.55;color:var(--ink-2)">רוחב תוכן ננעל ל־1360px וממורכז; רווחים גדלים ל־24–32; טבעות עולות לגודל lg. אין טור רביעי — עדיף אוויר על צפיפות.</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13px;margin-bottom:7px">גיליון מול מודאל · אלמנטים דביקים</div><div style="font-size:12px;line-height:1.55;color:var(--ink-2)">&lt;1024: פירוט/טופס = bottom sheet. ≥1024: אותו תוכן = modal ממורכז. דביקים: כותרת עליונה, סייד־בר דסקטופ, בר ניווט תחתון מובייל, ופעולה ראשית נעוצה בתחתית גיליון.</div></div>
+          <div style="grid-column:1 / -1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13px;margin-bottom:7px">גלילה אופקית</div><div style="font-size:12px;line-height:1.55;color:var(--ink-2)">מותרת ומכוונת רק לצ׳יפים של מסננים/טאבים במובייל (scroll-snap), ולטבלת התנועות הרחבה בטאבלט. לעולם לא לתוכן ראשי או לרשת הטבעות — אלו נערמות. אין גלילה אופקית מקרית של העמוד.</div></div>
+        </div>
+      </section>
+
+      <!-- ============ 9 · CONTENT ============ -->
+      <section id="content" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:18px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">09</span><h2 style="margin:0;font-size:22px;font-weight:800">הנחיות תוכן</h2></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13.5px;margin-bottom:8px">סגנון כתיבה RTL בעברית</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">גוף שני רבים ידידותי ("אתם בכיוון טוב"), משפטים קצרים, ללא ז׳רגון חשבונאי. פועל פעולה ברור בכפתורים ("שמירה", "סיווג", "חיבור מחדש"). ללא סימני קריאה מרובים; אימוג׳י רק במצבים חיוביים בודדים.</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13.5px;margin-bottom:8px">מטבע ומספרים</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">שקל בסימן מקדים צמוד: <code style="background:var(--code);border-radius:4px;padding:1px 5px">₪12,450</code>. מפריד אלפים פסיק; ללא אגורות בברירת מחדל (עיגול לשקל), אגורות רק בפירוט תנועה. מספרים tabular ליישור. קיצור בסכומים גדולים: <code style="background:var(--code);border-radius:4px;padding:1px 5px">₪2.42M</code>.</div></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13.5px;margin-bottom:8px">תאריכים ומצבי יתרה</div><div style="font-size:12px;line-height:1.6;color:var(--ink-2)">תאריכים בעברית: "היום · 09:14", "אתמול", "14 ביולי", "1 באוגוסט". חודש: "יולי 2025". חיובי עם "+" ו־pos-ink; שלילי עם "−" (מקף מינוס, לא נטוי) ו־ink רגיל — לא אדום אלא אם חריגה. אפס = "₪0" ולא ריק.</div></div>
+          <div style="background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);border-radius:12px;padding:15px 17px"><div style="font-weight:800;font-size:13.5px;margin-bottom:8px;color:var(--accent-ink)">שפה רגועה + טון תובנות AI</div><div style="font-size:12px;line-height:1.6;color:var(--ink)">עובדתי ומכוון־פעולה, לא מאשים: "בקצב הנוכחי צפויה חריגה של כ־₪450 במסעדות. צמצום שתי הזמנות בשבוע יאזן אותה." מציין ודאות ("צפוי", "בקצב הנוכחי"), מציע צעד אחד קונקרטי, ולעולם לא מטיל אשמה או משתמש בקריאות מבהילות.</div></div>
+          <div style="grid-column:1 / -1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--sh-sm)">
+            <div style="font-weight:800;font-size:13.5px;margin-bottom:10px">מילון מונחים</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 22px">
+              <sc-for list="{{ glossary }}" as="g" hint-placeholder-count="8"><div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px;line-height:1.4"><span style="font-weight:700;min-width:110px">{{ g.t }}</span><span style="color:var(--ink-2)">{{ g.d }}</span></div></sc-for>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 10 · DEV HANDOFF ============ -->
+      <section id="devhandoff" style="scroll-margin-top:78px;margin-bottom:40px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:18px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">10</span><h2 style="margin:0;font-size:22px;font-weight:800">העברה לפיתוח</h2></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--code);border:1px solid var(--line);border-radius:12px;padding:15px 17px">
+            <div style="font-weight:800;font-size:13px;margin-bottom:9px">עץ רכיבים מומלץ</div>
+            <pre style="margin:0;font-family:ui-monospace,monospace;font-size:11px;line-height:1.7;color:var(--ink-2);white-space:pre-wrap">&lt;AppShell&gt;
+  &lt;Sidebar/&gt; | &lt;BottomNav/&gt; + &lt;MoreSheet/&gt;
+  &lt;TopBar&gt; &lt;MonthSelector/&gt; &lt;SyncStatus/&gt; &lt;/TopBar&gt;
+  &lt;PageContainer&gt;
+    &lt;KpiGrid&gt; &lt;KpiCard×5/&gt; &lt;/KpiGrid&gt;
+    &lt;CashflowBar/&gt;
+    &lt;BudgetRingGrid&gt; &lt;CategoryRing×n/&gt; &lt;/&gt;
+    &lt;TransactionList&gt; &lt;TransactionRow×n/&gt; &lt;/&gt;
+    &lt;InsightCard/&gt; &lt;UpcomingList/&gt; &lt;AlertCard/&gt;
+  &lt;/PageContainer&gt;
+  &lt;SheetHost/&gt; &lt;ModalHost/&gt; &lt;ToastHost/&gt;
+&lt;/AppShell&gt;</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13px;margin-bottom:6px">מבנה עמוד ותבניות פריסה</div><div style="font-size:11.5px;line-height:1.55;color:var(--ink-2)">Shell יחיד עם slot לתוכן; כל מסך = route. שתי תבניות ראשיות: <b>Two-column</b> (2fr/1fr, קורס לטור אחד &lt;1024) ו־<b>Grid-of-cards</b> (auto-fit minmax). Sheet/Modal משותפים דרך host יחיד לפי breakpoint.</div></div>
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13px;margin-bottom:6px">הערות מימוש</div><div style="font-size:11.5px;line-height:1.55;color:var(--ink-2)">טוקנים כ־CSS custom properties תחת <code style="background:var(--code);border-radius:4px;padding:1px 4px">[data-theme]</code>; theme ב־localStorage + מאזין ל־<code style="background:var(--code);border-radius:4px;padding:1px 4px">prefers-color-scheme</code> עבור system. סכומים מרכזית דרך <code style="background:var(--code);border-radius:4px;padding:1px 4px">formatCurrency(he-IL)</code>. טבעות ב־SVG עם <code style="background:var(--code);border-radius:4px;padding:1px 4px">pathLength=100</code>.</div></div>
+          </div>
+          <div style="background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 26%,transparent);border-radius:12px;padding:14px 16px"><div style="font-weight:800;font-size:13px;margin-bottom:8px;color:var(--warn)">מקרי קצה</div><sc-for list="{{ edgeCases }}" as="e" hint-placeholder-count="6"><div style="display:flex;gap:7px;padding:4px 0;font-size:11.5px;line-height:1.45;color:var(--ink)"><span class="msr" style="font-size:14px;color:var(--warn);margin-top:1px">warning</span>{{ e }}</div></sc-for></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13px;margin-bottom:8px">הנחות עיצוב</div><sc-for list="{{ assumptions }}" as="a" hint-placeholder-count="4"><div style="display:flex;gap:7px;padding:4px 0;font-size:11.5px;line-height:1.45;color:var(--ink-2)"><span class="msr" style="font-size:14px;color:var(--mut);margin-top:1px">check_small</span>{{ a }}</div></sc-for></div>
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-sm)"><div style="font-weight:800;font-size:13px;margin-bottom:8px;color:var(--accent-ink)">שאלות פתוחות</div><sc-for list="{{ openQ }}" as="q" hint-placeholder-count="4"><div style="display:flex;gap:7px;padding:4px 0;font-size:11.5px;line-height:1.45;color:var(--ink-2)"><span class="msr" style="font-size:14px;color:var(--accent-ink);margin-top:1px">help</span>{{ q }}</div></sc-for></div>
+          <div style="background:var(--ink);border-radius:12px;padding:14px 16px"><div style="font-weight:800;font-size:13px;margin-bottom:8px;color:var(--bg)">אין לשנות (Do-not-change)</div><sc-for list="{{ doNot }}" as="d" hint-placeholder-count="4"><div style="display:flex;gap:7px;padding:4px 0;font-size:11.5px;line-height:1.45;color:var(--surface-3)"><span class="msr" style="font-size:14px;color:var(--pos);margin-top:1px">lock</span>{{ d }}</div></sc-for></div>
+        </div>
+      </section>
+
+      <!-- ============ 11 · CHECKLIST ============ -->
+      <section id="checklist" style="scroll-margin-top:78px;margin-bottom:20px">
+        <div style="display:flex;align-items:baseline;gap:11px;border-bottom:2px solid var(--line);padding-bottom:11px;margin-bottom:18px"><span style="font-size:13px;font-weight:800;color:#fff;background:var(--accent);border-radius:7px;padding:2px 9px">11</span><h2 style="margin:0;font-size:22px;font-weight:800">צ׳ק־ליסט לייצוא</h2></div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-sm);padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:4px 28px">
+          <sc-for list="{{ checklist }}" as="c" hint-placeholder-count="11"><div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--line)"><span style="width:19px;height:19px;border-radius:5px;background:var(--pos-soft);display:grid;place-items:center;flex:none"><span class="msr" style="font-size:14px;color:var(--pos-ink)">check</span></span><span style="flex:1;font-size:12.5px;color:var(--ink)">{{ c.t }}</span><span style="font-size:10.5px;font-weight:700;color:var(--mut);background:var(--surface-2);border-radius:5px;padding:2px 8px">{{ c.s }}</span></div></sc-for>
+        </div>
+        <div style="margin-top:16px;padding:16px 20px;background:var(--accent-soft);border-radius:14px;font-size:12.5px;line-height:1.6;color:var(--ink)"><b>קבצים מלווים בפרויקט:</b> <a href="Design System & MVP.dc.html">Design System & MVP</a> — מערכת עיצוב + 10 מסכי MVP חיים (דסקטופ+מובייל, בהיר/כהה) · <a href="Financial Dashboard Directions.dc.html">Financial Dashboard Directions</a> — שלושת כיווני העיצוב המקוריים להשוואה.</div>
+      </section>
+
+      <!-- MORE SECTIONS -->
+
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme: 'light' };
+  setThemeEv = (e) => this.setState({ theme: e.currentTarget.getAttribute('data-tk') });
+
+  renderVals() {
+    const theme = this.state.theme;
+    const tset = [
+      {key:'light',label:'בהיר',icon:'light_mode'},{key:'system',label:'מערכת',icon:'brightness_auto'},{key:'dark',label:'כהה',icon:'dark_mode'},
+    ].map(t => Object.assign({}, t, { bg: t.key===theme?'var(--surface)':'transparent', fg: t.key===theme?'var(--ink)':'var(--mut)', sh: t.key===theme?'var(--sh-sm)':'none' }));
+
+    const toc = [
+      {id:'overview',num:'01',title:'סקירת מוצר'},{id:'ia',num:'02',title:'ארכיטקטורת מידע'},
+      {id:'screens',num:'03',title:'מצאי מסכים'},{id:'tokens',num:'04',title:'מערכת עיצוב וטוקנים'},
+      {id:'components',num:'05',title:'מפרט רכיבים'},{id:'uxrules',num:'06',title:'כללי UX'},
+      {id:'a11y',num:'07',title:'נגישות'},{id:'responsive',num:'08',title:'רספונסיביות'},
+      {id:'content',num:'09',title:'הנחיות תוכן'},{id:'devhandoff',num:'10',title:'העברה לפיתוח'},
+      {id:'checklist',num:'11',title:'צ׳ק־ליסט לייצוא'},
+    ];
+
+    const ov = {
+      goals: [
+        'לתת לבני הזוג תמונת אמת אחת, רגועה ואמינה, של מצב הכספים המשפחתי בכל רגע.',
+        'להבחין בבירור בין מה שכבר קרה (הוצאה בפועל) לבין מה שצפוי לקרות (הוצאה עתידית).',
+        'להציג יתרה חזויה לסוף החודש ומאזן עודף/גירעון כמידע הפעולתי המרכזי.',
+        'להפוך משימות שגרתיות — סיווג, אישור, תיקון קטגוריה — לפעולה של הקשה־שתיים.',
+        'לשמור על הפרדה מוחלטת בין כספי משק הבית לבין העסק של דניאל.',
+      ],
+      users: [
+        {t:'אורן טל', d:'בן זוג, שכיר. משתמש עיקרי במובייל, בודק מצב מהיר פעם־פעמיים ביום.'},
+        {t:'דניאל טל', d:'בת זוג, עוסקת מורשה. צריכה גם מבט על העסק בנפרד ותזכורות מע״מ.'},
+        {t:'שני בני הזוג יחד', d:'תכנון חודשי משותף בדסקטופ — תקציב, יעדים, החלטות גדולות.'},
+        {t:'רואה חשבון (עתידי)', d:'גישת צפייה מוגבלת לנתוני העסק בלבד — מחוץ ל־MVP.'},
+      ],
+      useCases: [
+        'בדיקת בוקר מהירה: כמה נשאר, מה חריג, מה דורש אישור.',
+        'סיווג תנועה שהגיעה מהבנק ושיוכה לקטגוריה.',
+        'אישור/דחייה של חיוב חשוד או כפול.',
+        'עדכון תקציב קטגוריה כשמשהו השתנה.',
+        'מעקב אחרי יעד חיסכון וחסכונות הילדים.',
+        'הפרדת הכנסות/הוצאות העסק ומעקב מע״מ.',
+      ],
+      mvpScope: [
+        'לוח חודשי, תקציב, תנועות, תנועות לבדיקה.',
+        'תכנון וצפי הוצאות; מאזן חזוי לסוף החודש.',
+        'בית מול עסק + מבט עסק דניאל.',
+        'נכסים/פנסיה/חיסכון, ביטוחים, יעדים, חיסכון ילדים.',
+        'חיבור בנקים/כרטיסים/ארנקים דיגיטליים + סטטוס סנכרון.',
+        'סיכום יומי, הגדרות ובני משק בית, מצב בהיר/כהה/מערכת.',
+      ],
+      outOfScope: [
+        'ייעוץ השקעות אוטומטי או ביצוע פעולות מסחר.',
+        'הגשת דוחות מע״מ/מס בפועל לרשויות.',
+        'תשלום חשבונות ישירות מתוך האפליקציה.',
+        'ניהול מספר משקי בית / מולטי־טננסי.',
+        'גישת רואה חשבון והרשאות מדורגות.',
+        'מודול הכנסות מרובות מטבעות ומט״ח.',
+      ],
+    };
+
+    const ia = {
+      tree: [
+        {label:'לוח חודשי', icon:'space_dashboard', tier:'ראשי'},
+        {label:'תקציב חודשי', icon:'donut_small', tier:'ראשי'},
+        {label:'תנועות', icon:'receipt_long', children:'לבדיקה · פירוט תנועה', tier:'ראשי'},
+        {label:'תנועות לבדיקה', icon:'fact_check', tier:'ראשי'},
+        {label:'תכנון וצפי', icon:'event_upcoming', tier:'ראשי'},
+        {label:'בית מול עסק', icon:'compare_arrows', children:'מבט עסק דניאל', tier:'ראשי'},
+        {label:'נכסים וחיסכון', icon:'savings', children:'יעדים · חיסכון ילדים', tier:'ראשי'},
+        {label:'ביטוחים', icon:'shield', tier:'ראשי'},
+        {label:'חשבונות וכרטיסים', icon:'account_balance', tier:'ראשי'},
+        {label:'סיכום יומי', icon:'today', tier:'משני · דרך "עוד"'},
+        {label:'הגדרות ובני משק בית', icon:'settings', tier:'משני'},
+      ],
+      nav: [
+        {k:'כניסה ראשית', v:'לוח חודשי הוא מסך הבית לאחר התחברות.'},
+        {k:'התראה (פוש)', v:'פתיחה ישירה למסך הרלוונטי — למשל "תנועות לבדיקה".'},
+        {k:'טבעת קטגוריה', v:'הקשה פותחת גיליון פירוט; במובייל bottom sheet, בדסקטופ modal.'},
+        {k:'חזרה במובייל', v:'חץ אחורה בכותרת המסך + החלקה; גיליונות נסגרים בהחלקה מטה או ברקע.'},
+        {k:'חזרה בדסקטופ', v:'הניווט בסייד־בר הוא מקור האמת; אין היסטוריית breadcrumbs עמוקה.'},
+        {k:'Deep-link', v:'לכל מסך נתיב ייחודי (/dashboard, /budget, /txns/review) לשיתוף ורענון.'},
+      ],
+    };
+
+    const screens = [
+      {n:1,name:'לוח חודשי ראשי',icon:'space_dashboard',route:'/dashboard',
+        purpose:'מבט־על פעולתי של החודש הנבחר: יתרה חזויה, מאזן, תקציב ותובנות.',
+        goal:'להבין תוך 10 שניות אם המצב תקין ומה דורש טיפול.',
+        sections:['בורר חודש + סטטוס סנכרון','5 כרטיסי KPI','פס תזרים','טבעות קטגוריה','תנועות אחרונות','תשלומים צפויים','תובנות','התראות'],
+        primary:['מעבר בין חודשים','פתיחת קטגוריה לפירוט'],secondary:['חיפוש גלובלי','מרכז התראות'],
+        empty:'חודש ללא נתונים — הנחיה לחבר חשבון או לבחור חודש אחר.',
+        loading:'שלד (skeleton) לכרטיסי KPI, טבעות ורשימות.',
+        error:'באנר "סנכרון חלקי" עם כפתור רענון; נתונים אחרונים מוצגים עם חותמת זמן.',
+        desktop:'סייד־בר + כותרת דביקה; רשת KPI בת 5, פס תזרים, ואז 2 טורים (2fr/1fr).',
+        mobile:'כרטיס יתרה גדול, פס תזרים, 3 טבעות מובחרות, תובנה, ניווט תחתון.'},
+      {n:2,name:'תקציב חודשי',icon:'donut_small',route:'/budget',
+        purpose:'ניהול תקציב הקטגוריות באמצעות טבעות עגולות ומגירת פירוט.',
+        goal:'לראות איפה עומדים מול התקציב ולתקן במהירות.',
+        sections:['סיכום תקציב/הוצא/נותר','מתג בית/עסק','רשת טבעות','מגירת פירוט קטגוריה'],
+        primary:['פתיחת קטגוריה','הוספת קטגוריה','עריכת סכום תקציב'],secondary:['החלפת חודש','איפוס לברירת מחדל'],
+        empty:'אין קטגוריות — CTA "צור תקציב ראשון" עם תבניות מוכנות.',
+        loading:'טבעות אפורות פועמות ברשת.',
+        error:'"לא ניתן לטעון תקציב" + ניסיון חוזר; עריכה מושבתת עד לטעינה.',
+        desktop:'3 כרטיסי סיכום + רשת טבעות בת 4 טורים; פירוט נפתח כ־modal.',
+        mobile:'רשת 2 טורים; פירוט כ־bottom sheet עם budget/spent/remaining/projected + תנועות.'},
+      {n:3,name:'תנועות',icon:'receipt_long',route:'/transactions',
+        purpose:'רשימת כל התנועות עם חיפוש, סינון וטאבים.',
+        goal:'למצוא תנועה ספציפית או לסקור פעילות אחרונה.',
+        sections:['חיפוש','טאבים (הכול/הוצאות/הכנסות/לבדיקה)','מסננים','רשימה מקובצת לפי יום'],
+        primary:['חיפוש','סינון','פתיחת תנועה'],secondary:['ייצוא CSV','בחירה מרובה'],
+        empty:'"אין תנועות בטווח" — הצעה להרחיב תאריכים או לנקות מסננים.',
+        loading:'שורת שלד עם עיגול+שתי שורות; טעינת עמוד נוסף בגלילה (infinite).',
+        error:'"טעינת תנועות נכשלה" עם ניסיון חוזר; שומר מסננים.',
+        desktop:'טבלה רחבה: אייקון, שם, קטגוריה/חשבון, תאריך, סכום, תג לבדיקה.',
+        mobile:'רשימה מקובצת לפי כותרות יום; שורה קומפקטית; סינון בגיליון.'},
+      {n:4,name:'תנועות לבדיקה',icon:'fact_check',route:'/transactions/review',
+        purpose:'תור פעולות לתנועות שדורשות סיווג, זיהוי או אישור.',
+        goal:'לרוקן את התור בכמה שפחות הקשות.',
+        sections:['מונה פתוחות','כרטיסי סקירה','פעולה ראשית + "תקין"'],
+        primary:['שיוך קטגוריה','אישור/דחייה','זיהוי סוחר'],secondary:['סמן הכול כתקין','דחייה למועד אחר'],
+        empty:'מצב "הכול מסודר ✨" עם אייקון חיובי וכפתור רענון סנכרון.',
+        loading:'2–3 כרטיסי שלד.',
+        error:'"עדכון נכשל" ברמת הכרטיס; פעולה נשארת פתוחה לניסיון חוזר.',
+        desktop:'רשימת כרטיסים ברוחב מלא; כל כרטיס עם סיבה, סכום ו־2 כפתורים.',
+        mobile:'כרטיס לכל תור; פעולה ראשית מלאת־רוחב; החלקה = תקין.'},
+      {n:5,name:'תכנון וצפי הוצאות',icon:'event_upcoming',route:'/planning',
+        purpose:'ניהול הוצאות צפויות עתידיות והשפעתן על המאזן החזוי.',
+        goal:'לתכנן חודש קדימה ולראות עודף/גירעון צפוי.',
+        sections:['סיכום הכנסה/צפי/מאזן חזוי','קבוצות: קבוע / משתנה (הערכה) / חד־פעמי'],
+        primary:['הוספת הוצאה צפויה','עריכת סכום/מועד'],secondary:['שכפול מחודש קודם','מחיקה'],
+        empty:'"אין הוצאות מתוכננות" + הצעה לייבא קבועות מהחודש הקודם.',
+        loading:'שלד לשלוש קבוצות.',
+        error:'"טעינת התכנון נכשלה" + ניסיון חוזר.',
+        desktop:'3 כרטיסי סיכום + 3 טורים לפי סוג הוצאה.',
+        mobile:'כרטיס מאזן חזוי בראש, ואז קבוצות מוערמות אנכית.'},
+      {n:6,name:'בית מול עסק',icon:'compare_arrows',route:'/split',
+        purpose:'השוואה מפורשת ומופרדת בין משק הבית לעסק.',
+        goal:'לוודא שכספי העסק אינם מעורבבים בבית, ולראות מע״מ צפוי.',
+        sections:['כרטיס משק בית (ראשי)','כרטיס עסק','הבהרת הפרדה','תזכורת מע״מ'],
+        primary:['מעבר למבט עסק דניאל'],secondary:['החלפת חודש','ייצוא סיכום'],
+        empty:'אם אין עסק מוגדר — הצעה להוסיף פרופיל עסק.',
+        loading:'שני כרטיסים בשלד.',
+        error:'"נתוני עסק לא נטענו" — נתוני הבית עדיין מוצגים.',
+        desktop:'שני כרטיסים זה לצד זה + באנר הבהרה מלא־רוחב.',
+        mobile:'מתג הקשר (בית/עסק) בראש; כרטיס אחד בכל פעם.'},
+      {n:7,name:'מבט עסק דניאל',icon:'storefront',route:'/business',
+        purpose:'תמונת עסק עצמאית: הכנסות, הוצאות, רווח, מע״מ ותנועות עסקיות.',
+        goal:'לנהל את העסק של דניאל בלי לזהם את נתוני הבית.',
+        sections:['KPI עסק','לוח מע״מ ומועד דיווח','תנועות עסקיות','לקוחות/חשבוניות (תצוגה)'],
+        primary:['סימון תנועה כעסקית','סימון מע״מ'],secondary:['ייצוא לרו״ח','סינון לפי רבעון'],
+        empty:'"עדיין אין תנועות עסקיות" + הסבר על סימון תנועה כעסקית.',
+        loading:'שלד ל־KPI ולרשימת התנועות.',
+        error:'"סנכרון חשבון העסק נכשל" + חיבור מחדש.',
+        desktop:'רשת KPI בת 4 + כרטיס מע״מ בולט + טבלת תנועות עסקיות.',
+        mobile:'KPI מוערמים 2×2, כרטיס מע״מ, רשימת תנועות.'},
+      {n:8,name:'נכסים, פנסיה וחיסכון',icon:'savings',route:'/assets',
+        purpose:'שווי נטו משפחתי מרוכז — נכסים מול התחייבויות.',
+        goal:'לדעת כמה המשפחה שווה וכיצד זה מתפלג.',
+        sections:['שווי נטו','סך נכסים','התחייבויות','רשימת נכסים לפי סוג'],
+        primary:['הוספת נכס/התחייבות','עדכון שווי'],secondary:['סינון לפי סוג','היסטוריית שווי'],
+        empty:'"טרם הוזנו נכסים" — CTA להוספה ידנית או חיבור.',
+        loading:'שלד לכרטיסי סיכום ולרשימה.',
+        error:'"עדכון שווי נכסים נכשל" — מוצג ערך אחרון ידוע + חותמת.',
+        desktop:'3 כרטיסי סיכום + רשימה עם תג סוג וסכום מיושר.',
+        mobile:'כרטיס שווי נטו גדול + רשימה קומפקטית.'},
+      {n:9,name:'ביטוחים',icon:'shield',route:'/insurance',
+        purpose:'ריכוז כל הפוליסות עם פרמיה, כיסוי וסטטוס חידוש.',
+        goal:'לדעת מה מבוטח, בכמה, ומתי צריך לחדש.',
+        sections:['סיכום פרמיה חודשית','כרטיסי פוליסות','סטטוס חידוש'],
+        primary:['פתיחת פוליסה','הוספת פוליסה'],secondary:['תזכורת חידוש','העלאת מסמך'],
+        empty:'"עדיין לא הוגדרו ביטוחים" + הצעת קטגוריות נפוצות.',
+        loading:'רשת כרטיסי שלד.',
+        error:'"טעינת פוליסות נכשלה" + ניסיון חוזר.',
+        desktop:'רשת 2 טורים; כל כרטיס עם אייקון, חברה, כיסוי, פרמיה וסטטוס.',
+        mobile:'כרטיס פוליסה מלא־רוחב; סיכום פרמיה בראש.'},
+      {n:10,name:'יעדים פיננסיים',icon:'flag',route:'/goals',
+        purpose:'מעקב אחר יעדי חיסכון עם התקדמות ותחזית מועד.',
+        goal:'לראות כמה קרובים ליעד וכמה להפקיד כדי לעמוד בו.',
+        sections:['רשימת יעדים','טבעת/פס התקדמות','תחזית מועד','הפקדה'],
+        primary:['הוספת יעד','הפקדה ליעד'],secondary:['עריכת סכום יעד','השהיה'],
+        empty:'"אין יעדים עדיין" — תבניות (חופשה, רכב, רזרבה) בהקשה.',
+        loading:'שלד לכרטיסי יעד.',
+        error:'"שמירת יעד נכשלה" + ניסיון חוזר.',
+        desktop:'רשת כרטיסי יעד עם טבעת התקדמות ותחזית.',
+        mobile:'כרטיסים מוערמים; פס התקדמות רחב.'},
+      {n:11,name:'חיסכון ילדים — אריה ואלי',icon:'family_restroom',route:'/kids',
+        purpose:'שני מסלולי חיסכון נפרדים לילדים אריה ואלי.',
+        goal:'לעקוב אחרי צבירה, הפקדות והתקדמות לכל ילד בנפרד.',
+        sections:['בורר ילד (אריה/אלי)','יתרה וצבירה','הפקדות אחרונות','יעד גיל 18'],
+        primary:['הפקדה','מעבר בין ילדים'],secondary:['הגדרת הפקדה קבועה','עריכת יעד'],
+        empty:'"עדיין לא נפתח חיסכון" — פתיחה בהקשה אחת לכל ילד.',
+        loading:'שלד ליתרה ולרשימת ההפקדות.',
+        error:'"טעינת חיסכון הילד נכשלה" + ניסיון חוזר.',
+        desktop:'שני טורים (אריה/אלי) זה לצד זה עם התקדמות והפקדות.',
+        mobile:'בורר ילד עליון (מקטע/סגמנט), כרטיס אחד פעיל.'},
+      {n:12,name:'חשבונות, כרטיסים וארנקים דיגיטליים',icon:'account_balance',route:'/accounts',
+        purpose:'ניהול מקורות מחוברים וסטטוס הסנכרון שלהם.',
+        goal:'לוודא שכל המקורות מחוברים ומעודכנים.',
+        sections:['באנר שגיאת סנכרון','רשימת מקורות','סטטוס לכל מקור','חיבור מקור'],
+        primary:['חיבור מקור חדש','חיבור מחדש למקור שנכשל'],secondary:['רענון ידני','ניתוק מקור'],
+        empty:'"לא חוברו מקורות" — אשף חיבור בנק/כרטיס/ארנק.',
+        loading:'סטטוס "מסנכרן…" עם ספינר בכל שורה בתהליך.',
+        error:'באנר אדום + סטטוס "שגיאת חיבור" בשורה + כפתור "התחברות מחדש".',
+        desktop:'רשימה עם אייקון, שם, מ״ס, סטטוס, יתרה/חיוב ופעולה.',
+        mobile:'כרטיסי מקור; באנר שגיאה בראש עם קישור פעולה.'},
+      {n:13,name:'סיכום יומי',icon:'today',route:'/daily',
+        purpose:'תקציר יומי קצר: מה נכנס, מה יצא, ומה דורש תשומת לב היום.',
+        goal:'עדכון בוקר של 15 שניות בלי להיכנס לעומק.',
+        sections:['סכום יומי (נכנס/יצא)','תנועות היום','דורש טיפול היום','תובנת יום'],
+        primary:['פתיחת תנועה','טיפול בפריט'],secondary:['שיתוף סיכום','הגדרת שעת התראה'],
+        empty:'"יום שקט — אין תנועות חדשות" עם טון מרגיע.',
+        loading:'שלד לסכום ולרשימה קצרה.',
+        error:'"טעינת הסיכום נכשלה" — הצגת סיכום אתמול כגיבוי.',
+        desktop:'כרטיס תקציר רחב + שני טורים (תנועות / דורש טיפול).',
+        mobile:'תקציר בראש, רשימת היום, תובנה בתחתית.'},
+      {n:14,name:'הגדרות ובני משק בית',icon:'settings',route:'/settings',
+        purpose:'ניהול חברי משק הבית, העדפות, מצב תצוגה, אבטחה וגיבוי.',
+        goal:'להתאים את המערכת ולנהל גישה.',
+        sections:['בני משק הבית','העדפות (מטבע/שפה/מצב)','התראות','אבטחה','גיבוי וייצוא'],
+        primary:['הזמנת בן משפחה','שינוי מצב תצוגה'],secondary:['ניהול הרשאות','ייצוא נתונים'],
+        empty:'—',
+        loading:'שלד לרשימות ההגדרה.',
+        error:'"שמירת הגדרה נכשלה" — חזרה לערך קודם + הודעת toast.',
+        desktop:'רשת 2 טורים: חברים + העדפות, ואז שורת אבטחה/גיבוי מלאה.',
+        mobile:'רשימות מוערמות; מתג מצב תצוגה מקטעי.'},
+    ];
+
+    // ===== 4 · TOKENS =====
+    const colorRows = [
+      {n:'bg', role:'רקע אפליקציה', l:'#f3f5f4', d:'#0e1513', v:'--bg'},
+      {n:'surface', role:'משטח כרטיס', l:'#ffffff', d:'#161f1d', v:'--surface'},
+      {n:'surface-2', role:'משטח משני / שדות', l:'#eef2f0', d:'#1f2a27', v:'--surface-2'},
+      {n:'surface-3', role:'משטח שלישי / hover', l:'#e4eae7', d:'#293632', v:'--surface-3'},
+      {n:'line', role:'גבולות / מפרידים', l:'rgba(20,45,42,.11)', d:'rgba(255,255,255,.11)', v:'--line'},
+      {n:'ink', role:'טקסט ראשי', l:'#1b2a28', d:'#eef3f1', v:'--ink'},
+      {n:'ink-2', role:'טקסט משני', l:'#3a4a47', d:'#c6d2ce', v:'--ink-2'},
+      {n:'mut', role:'טקסט מושתק / תוויות', l:'#6a7a77', d:'#8a9f9a', v:'--mut'},
+      {n:'accent', role:'צבע מותג / פעולות', l:'#3f7d9e', d:'#66a9cb', v:'--accent'},
+      {n:'accent-ink', role:'טקסט על accent-soft', l:'#2b5f7f', d:'#9fcadd', v:'--accent-ink'},
+      {n:'accent-soft', role:'רקע accent רך', l:'#e7eff4', d:'#1a2e38', v:'--accent-soft'},
+      {n:'positive', role:'חיובי / עודף / תקין', l:'#3f8f6d', d:'#5cb089', v:'--pos'},
+      {n:'positive-soft', role:'רקע חיובי רך', l:'#e6f1eb', d:'#152b22', v:'--pos-soft'},
+      {n:'near', role:'קרוב לגבול / אזהרה', l:'#a9772a', d:'#d3a24f', v:'--near'},
+      {n:'warn', role:'חריגה / שגיאה', l:'#b5623a', d:'#d0855b', v:'--warn'},
+      {n:'warn-soft', role:'רקע חריגה רך', l:'#f5e6dd', d:'#33231b', v:'--warn-soft'},
+    ];
+    const typeRows = [
+      {n:'Display', size:'30px', w:'800', lh:'1.1', use:'סכומים ראשיים, כותרות עמוד'},
+      {n:'Title', size:'22px', w:'800', lh:'1.15', use:'כותרות מסך'},
+      {n:'Heading', size:'18px', w:'700', lh:'1.2', use:'כותרות כרטיס / מקטע'},
+      {n:'Subhead', size:'15px', w:'700', lh:'1.3', use:'כותרות משנה'},
+      {n:'Body', size:'14px', w:'400', lh:'1.55', use:'טקסט גוף'},
+      {n:'Body-strong', size:'14px', w:'700', lh:'1.4', use:'סכומים בשורות, הדגשות'},
+      {n:'Caption', size:'12px', w:'600', lh:'1.4', use:'תוויות, תאריכים, מטא'},
+      {n:'Micro', size:'10.5px', w:'700', lh:'1.2', use:'תגים, אינדיקטורים'},
+    ];
+    const scaleRows = [
+      {t:'מרווח (רשת 4px)', items:'4 · 8 · 12 · 16 · 20 · 24 · 32 · 40', note:'gap וריפוד תמיד ממכפלות 4.'},
+      {t:'רדיוס', items:'sm 8 · md 12 · lg 16 · xl 22 · pill 999', note:'כרטיסים lg; שדות/כפתורים md; צ׳יפים pill.'},
+      {t:'צללים', items:'sm (שורות) · md (כרטיסים) · lg (חלוניות/גיליונות)', note:'בכהה — צל רך + גבול עדין במקום עומק.'},
+      {t:'נקודות שבירה', items:'mobile <640 · tablet 640–1023 · desktop 1024–1439 · large ≥1440', note:'RTL בכל הרוחבים.'},
+      {t:'גדלי אייקונים', items:'14 · 16 · 18 · 20 · 22 · 24', note:'Material Symbols Rounded; 18–20 בשורות, 22–24 בכותרות.'},
+      {t:'שכבות z-index', items:'base 0 · sticky 50 · dropdown 100 · sheet/modal 1000 · toast 1100', note:'רקע מודאל בשכבה אחת מתחת לתוכן.'},
+      {t:'תנועה', items:'fast 120ms · base 200ms · slow 320ms · easing cubic-bezier(.2,.7,.2,1)', note:'גיליון: slide-up 240ms; מודאל: fade+scale 200ms.'},
+    ];
+
+    // ===== 5 · COMPONENTS =====
+    const C = (name,icon,purpose,anatomy,variants,sizes,states,props,a11y,mobile,usage)=>({name,icon,purpose,anatomy,variants,sizes,states,props,a11y,mobile,usage});
+    const components = [
+      C('כפתורים','smart_button','פעולות עיקריות ומשניות.','תווית + אייקון אופציונלי (מקדים/עוקב), רקע, רדיוס md.',['primary (accent מלא)','secondary (surface-2+גבול)','ghost (טקסט)','danger (warn-soft)'],['sm 32px','md 40px','lg 48px'],['default','hover','active','focus-visible','disabled','loading (ספינר)'],'variant, size, iconStart, iconEnd, loading, disabled, onClick','role=button, תווית ברורה, מצב טעינה עם aria-busy, יעד ≥44px במובייל.','רוחב מלא בתחתית גיליונות ובטפסים.','פעולה ראשית אחת למסך; danger רק לפעולות הרסניות.'),
+      C('כפתורי אייקון','radio_button_checked','פעולה קומפקטית ללא תווית.','אייקון במרכז ריבוע/עיגול; אזור מגע מוגדל.',['plain','filled','tonal'],['32px','36px','40px'],['default','hover','active','focus','disabled'],'icon, label(a11y), size, variant','חובה aria-label; טקסט חלופי לקורא מסך; יעד מגע ≥44px.','שימוש נרחב בכותרות מובייל (חיפוש, התראות).','להצמיד tooltip בדסקטופ; לא לשרשר יותר מ־3 ברצף.'),
+      C('שדות קלט','edit','הזנת טקסט, סכום ותאריך.','תווית מעל, מכל עם גבול, אייקון אופציונלי, טקסט עזר/שגיאה מתחת.',['text','amount (₪ מקדים)','search','textarea'],['md 40px','lg 48px'],['default','focus (גבול accent)','filled','error (גבול+טקסט warn)','disabled'],'label, value, placeholder, prefix, error, dir=rtl','קישור label↔input, aria-invalid+aria-describedby לשגיאה, סכומים LTR בתוך מכל RTL.','מקלדת מספרית לשדות סכום; זום מנוע ל־16px למניעת zoom ב־iOS.','הודעת שגיאה תמיד טקסטואלית, לא רק אדום.'),
+      C('בוררים (Select)','expand_more','בחירה מרשימה סגורה.','טריגר עם ערך נבחר + חץ; פאנל אפשרויות.',['inline','menu','segmented (2–3 פריטים)'],['md','lg'],['closed','open','focus','disabled'],'options, value, onChange, searchable','ניווט מקלדת (חצים/Enter/Esc), aria-expanded, role=listbox/option.','נפתח כ־bottom sheet במובייל אם >6 פריטים.','ל־2–3 אפשרויות קצרות — segmented ולא dropdown.'),
+      C('טאבים','tab','מעבר בין תצוגות באותו הקשר.','רצועת תוויות + קו תחתון פעיל.',['underline','pill'],['default'],['default','active','hover','focus'],'tabs, active, onChange','role=tablist/tab/tabpanel, חצים ניווט, RTL: פעיל מימין.','גלילה אופקית עדינה במובייל אם צר.','עד 4 טאבים; מעבר לפילטרים אם יותר.'),
+      C('מסננים (Filters)','tune','צמצום רשימות לפי קריטריון.','צ׳יפים pill; פעיל=accent-soft; ניתן להסרה (x).',['chip','chip-removable','filter-button'],['default'],['default','active','removable'],'filters, active, onClear','כל צ׳יפ הוא כפתור עם aria-pressed; "x" עם aria-label "הסר סינון".','נפתחים בגיליון "מסננים" עם החלה מרוכזת.','להציג מונה מסננים פעילים ולאפשר "נקה הכול".'),
+      C('כרטיסים','dashboard','מיכל תוכן בסיסי.','משטח surface, גבול line, רדיוס lg, צל sm/md, ריפוד 16–20.',['plain','soft (accent/pos/warn-soft)','outline','inverse (ink)'],['—'],['default','hover (אינטראקטיבי)','selected'],'variant, padding, interactive','אם לחיץ — role/tabindex + focus ring; אחרת מבנה כותרת סמנטי.','ריפוד וגודל טקסט זהים; רוחב מלא.','לא לקנן כרטיס בתוך כרטיס יותר מרמה אחת.'),
+      C('כרטיסי KPI','insights','הצגת מספר פיננסי מרכזי.','תווית + ערך גדול + מטא/דלתא; מכל דגש לחריגה/עתידי.',['default','positive','future (גבול מקווקו)','emphasis'],['—'],['default','loading (שלד)'],'label, value, delta, tone, hint','ערך כטקסט קריא; דלתא עם אייקון+טקסט, לא צבע בלבד.','רשת 5 → 2×N מוערם; ערך לא יורד מ־20px.','להגביל ל־5 KPI בלוח; "עתידי" תמיד מובחן ויזואלית.'),
+      C('טבעות תקציב קטגוריה','donut_small','אחוז ניצול תקציב לקטגוריה.','טבעת SVG, אייקון בראש, סכום נותר במרכז, שם + תג סטטוס.',['healthy (pos)','near (near)','over (warn)'],['sm 78–84','md 92','lg 98'],['default','hover (דסקטופ)','pressed'],'spent, budget, icon, name, onOpen','aria-label מלא ("קניות, נוצל 62%, נותרו ₪1,320"); role=button; טבעת מסובבת ל־RTL (scaleX(-1)).','רשת 2–3 טורים; פתיחה = bottom sheet.','סטטוס תמיד באייקון+טקסט לצד הצבע; מרכז מציג "נותרו"/"חריגה".'),
+      C('שורות תנועה','receipt_long','ייצוג תנועה בודדת.','אייקון קטגוריה + שם + מטא (קטגוריה/חשבון/תאריך) + סכום.',['expense','income (+ ו־pos-ink)','review (תג לבדיקה)','installment (תג תשלומים)'],['compact','comfortable'],['default','hover','selected','pressed'],'txn, onOpen, showAccount','שורה כפתור עם aria-label מסכם; הכנסה עם "+" מפורש.','שורה קומפקטית; החלקה חושפת פעולות (סיווג/תקין).','הכנסה/הוצאה נבדלות בסימן וטקסט, לא רק בצבע.'),
+      C('תגי סטטוס','label','מצב קצר של פריט.','אייקון + טקסט + רקע רך; רדיוס sm/pill.',['ok/pos','sync/mut','error/warn','near','future/accent'],['micro','sm'],['static'],'tone, icon, label','ניגודיות טקסט AA; המשמעות בטקסט, לא רק בצבע/אייקון.','ללא שינוי; לא לשבור שורה.','לעולם לא סטטוס בצבע בלבד — תמיד אייקון+מילה.'),
+      C('התראות (Alerts)','report','הודעה ברמת מקטע/מסך.','אייקון + כותרת + תיאור + פעולה אופציונלית; רקע רך + גבול.',['info','warning','error','success'],['inline','banner'],['static','dismissible'],'tone, title, body, action, onDismiss','role=alert/status לפי דחיפות; פוקוס לפעולה; ניתן לסגירה במקלדת.','באנר מלא־רוחב בראש התוכן; פעולה כקישור.','להסביר גם מה לעשות, לא רק מה קרה; טון רגוע.'),
+      C('אינדיקטורי התקדמות','linear_scale','ניצול/התקדמות ליעד.','פס או טבעת עם מילוי לפי אחוז + תווית.',['linear','ring','stepped'],['thin 7','regular 8–10'],['default','over (מעל 100%)','indeterminate'],'value, max, tone, label','aria-valuenow/min/max; טקסט אחוז נגיש; over מסומן בטקסט.','פס רחב מלא־רוחב; טבעת קטנה יותר.','over-fill לא "נשפך" — נעצר ומסומן "חריגה".'),
+      C('גרפים','show_chart','מגמות בסיסיות בלבד.','פס תזרים מוערם / מיני קו; מקרא טקסטואלי.',['stacked-bar (תזרים)','sparkline','donut breakdown'],['—'],['default','empty','loading'],'series, legend, format','מקרא בטקסט+דפוס, לא רק צבע; data-table חלופי לקורא מסך.','להימנע מגרפים כבדים; פס אופקי פשוט.','גרף אחד לכל היותר למסך; לא קישוט.'),
+      C('מודאלים','web_asset','משימה ממוקדת בדסקטופ.','שכבת רקע + כרטיס ממורכז + כותרת + גוף + פעולות.',['form','confirm','detail'],['sm 420','md 560','lg 720'],['open','closing'],'title, onClose, actions, size','מלכודת פוקוס, Esc סוגר, החזרת פוקוס לטריגר, aria-modal.','במובייל הופך ל־bottom sheet.','פעולה ראשית מימין (RTL); אישור הרסני נפרד.'),
+      C('גיליונות תחתונים','vertical_align_bottom','פירוט/פעולה במובייל.','ידית גרירה + כותרת + תוכן גליל + פעולה מלאה.',['detail','form','picker','confirm'],['auto','half','full'],['open','dragging','closing'],'title, onClose, snapPoints','מלכודת פוקוס, סגירה בהחלקה/Esc/רקע, aria-modal.','דפוס העיקרי לפירוט קטגוריה ותנועה.','פעולה ראשית נעוצה בתחתית; תוכן ארוך גליל פנימי.'),
+      C('Tooltips','info','הסבר קצר על אלמנט.','בועה קטנה עם חץ; מופיע ב־hover/focus.',['label','rich'],['—'],['hidden','visible'],'content, placement','מופיע גם ב־focus מקלדת; aria-describedby; לא למידע קריטי.','במובייל — הקשה ארוכה או "i" שפותח גיליון קטן.','לא להסתיר מידע חיוני מאחורי tooltip.'),
+      C('תפריטים נפתחים','more_vert','פעולות הקשר על פריט.','טריגר (⋯) + רשימת פעולות; מפריד לפעולות הרסניות.',['actions','select'],['—'],['closed','open','focus'],'items, onSelect','role=menu/menuitem, ניווט חצים, Esc, RTL יישור.','נפתח כ־action sheet תחתון.','לקבץ הרסני בתחתית עם צבע warn+טקסט.'),
+      C('ניווט','menu','מבנה ניווט ראשי.','סייד־בר דסקטופ / בר תחתון מובייל + "עוד".',['sidebar','bottom-bar','more-sheet'],['—'],['default','active','badge'],'items, active, badges','landmark nav, aria-current=page, סדר טאב לוגי RTL.','בר תחתון קבוע; "עוד" כגיליון.','פריט פעיל באייקון מלא+טקסט+פס, לא צבע בלבד.'),
+      C('בורר חודש/תאריך','calendar_month','בחירת חודש נצפה או תאריך.','חצים הקודם/הבא + תווית חודש; לוח לתאריך.',['month-stepper','date-picker','range'],['—'],['default','open','disabled (עתיד)'],'value, min, max, onChange','חצים עם aria-label; RTL: "הבא" משמאל; ניווט מקלדת בלוח.','stepper קומפקטי בכותרת; לוח כגיליון.','חודשים עתידיים ללא נתונים — מסומנים כ"תכנון".'),
+      C('כרטיסי סקירה','fact_check','פריט בתור "לבדיקה".','אייקון + שם + סיבה (flag) + סכום + 2 פעולות.',['uncategorized','unrecognized','duplicate','transfer'],['—'],['default','resolving','resolved'],'item, reason, primaryAction, onOk','כותרת מסכמת לקורא מסך; פעולות עם תוויות מפורשות.','כרטיס מלא־רוחב; פעולה ראשית מלאה; החלקה=תקין.','סיבה אחת ברורה + פעולה ראשית אחת לכל כרטיס.'),
+      C('מצבי ריק','inbox','היעדר תוכן בצורה מנחה.','אייקון רך + כותרת + משפט הסבר + CTA.',['first-use','filtered-empty','all-clear (חיובי)'],['—'],['static'],'icon, title, body, action','אייקון דקורטיבי (aria-hidden); הכותרת נושאת המשמעות.','ממורכז אנכית; CTA מלא־רוחב.','טון מרגיע; "all-clear" חוגג סדר ולא ריקנות.'),
+      C('שלדי טעינה','hourglass_top','מציין תוכן בטעינה.','בלוקים אפורים פועמים בצורת התוכן העתידי.',['text-line','card','ring','row'],['—'],['pulsing'],'shape, count','aria-busy=true על המכל; aria-live מנומס לתוצאה.','אותם שלדים בקנה מידה מובייל.','לשמור על אותו layout כדי למנוע קפיצה (CLS).'),
+      C('הודעות Toast','notifications','משוב קצר לפעולה.','אייקון + טקסט + פעולת ביטול אופציונלית; נעלם אוטומטית.',['success','info','error','undo'],['—'],['enter','visible','exit'],'tone, message, action, duration','role=status (מנומס), לא לחטוף פוקוס; "בטל" נגיש במקלדת.','מופיע מעל בר הניווט התחתון.','לפעולות הפיכות לצרף "בטל"; לא לשרשר toasts.'),
+    ];
+
+    // ===== 6 · UX RULES =====
+    const ux = [
+      {q:'הוצאה בפועל מול הוצאה צפויה', a:'בפועל = מילוי מלא/צבע אטום + סכום ודאי. צפוי = דפוס מקווקו + גבול מקווקו + תווית "צפוי/עתידי". בפס התזרים: מקטע אטום (הוצא), מקטע מקווקו (צפוי), מקטע pos (עודף).'},
+      {q:'יתרה חזויה לסוף החודש', a:'תמיד לצד היתרה הנוכחית: "יתרה כעת ₪23,450" ו"חזויה ₪28,850". החזויה = נוכחי + הכנסות צפויות − הוצאות צפויות שנותרו. מסומנת כתחזית, לא ודאות.'},
+      {q:'הצגת חריגה', a:'טבעת/פס עוברים ל־warn ונעצרים ב־100% עם תווית "חריגה +₪140" ואייקון priority_high. אף פעם לא צבע בלבד — תמיד אייקון+טקסט+סכום. הטון עובדתי ולא מאשים.'},
+      {q:'העברות בין חשבונות', a:'מזוהות ומסומנות "העברה" עם אייקון swap; אינן נספרות כהכנסה או הוצאה ואינן משפיעות על התקציב. מוצגות מנוטרלות (אפור), עם קישור לחשבון היעד.'},
+      {q:'הבחנה בין תנועות בית לעסק', a:'תנועת עסק נושאת תג "עסק" ואייקון storefront, מסוננת החוצה מתקציב/מאזן/יתרה של הבית, ומופיעה רק במבט העסק. סיווג שגוי ניתן לתיקון בהקשה.'},
+      {q:'סקירת תנועות לא מסווגות', a:'נכנסות לתור "לבדיקה" עם סיבה ("ללא קטגוריה"). המשתמש בוחר קטגוריה מרשימה חכמה (הצעות ראשונות); הפריט יורד מהתור מיידית עם אפשרות "בטל" ב־toast.'},
+      {q:'תצוגת עסקאות תשלומים (קרדיט)', a:'מוצג "תשלום 2 מתוך 12" + סכום התשלום החודשי + סכום כולל בהרחבה. רק התשלום החודשי נספר בתקציב החודש; היתר משוקלל בצפי העתידי.'},
+      {q:'תיקון קטגוריה', a:'בהקשה על הקטגוריה בשורת/פירוט תנועה נפתח בורר; הבחירה נשמרת מיידית. תנועות היסטוריות של אותו סוחר נשארות כפי שהיו אלא אם המשתמש בוחר להחיל רטרואקטיבית.'},
+      {q:'"זכור כלל זה"', a:'לאחר תיקון מוצעת אפשרות "שייך אוטומטית את [סוחר] ל[קטגוריה] בעתיד". יצירת כלל מוצגת בבירור, ניתנת לביטול, ומנוהלת בהגדרות > כללי סיווג.'},
+      {q:'התאמות תקציב', a:'עריכת סכום קטגוריה מעדכנת מיידית את הטבעת ואת "נותר בתקציב" הכולל. שינוי מתועד; ניתן להגדיר אם הוא חד־פעמי (החודש) או קבוע (מהחודש הבא).'},
+      {q:'גלילת יתרה בין חודשים (Carry-over)', a:'עודף/גירעון סוף חודש יכול לעבור כ"יתרת פתיחה" לחודש הבא (הגדרה ניתנת לכיבוי). מוצג בשקיפות כשורה נפרדת "מהחודש הקודם", לא מובלע בהכנסות.'},
+    ];
+
+    // ===== 8 · RESPONSIVE =====
+    const respRows = [
+      {k:'ניווט', m:'בר תחתון 5 פריטים + "עוד"', t:'בר תחתון או סייד־בר מכווץ (אייקונים)', d:'סייד־בר מלא קבוע 206px'},
+      {k:'רשת KPI', m:'טור אחד / 2×N מוערם', t:'2–3 טורים', d:'5 טורים בשורה'},
+      {k:'טבעות תקציב', m:'2–3 טורים', t:'3–4 טורים', d:'4 טורים + tile "הכול"'},
+      {k:'פריסה ראשית', m:'טור יחיד, הכול מוערם', t:'טור יחיד רחב', d:'שני טורים 2fr/1fr'},
+      {k:'פירוט/טופס', m:'bottom sheet', t:'bottom sheet', d:'modal ממורכז'},
+      {k:'תנועות', m:'רשימה מקובצת לפי יום', t:'רשימה / טבלה מצומצמת', d:'טבלה רחבה עם עמודות'},
+    ];
+
+    // ===== 9 · CONTENT · glossary =====
+    const glossary = [
+      {t:'יתרה חזויה', d:'תחזית יתרה לסוף החודש = נוכחי + צפי הכנסות − צפי הוצאות שנותרו.'},
+      {t:'מאזן החודש', d:'הכנסה צפויה פחות הוצאות צפויות — עודף או גירעון.'},
+      {t:'הוצא בפועל', d:'סכום שכבר יצא מהחשבון החודש (ודאי).'},
+      {t:'נותרו צפויות', d:'הוצאות מתוכננות שטרם בוצעו (עתידי, מקווקו).'},
+      {t:'לבדיקה', d:'תנועה שדורשת סיווג, זיהוי או אישור.'},
+      {t:'העברה', d:'תנועה בין חשבונות של המשפחה — לא הכנסה/הוצאה.'},
+      {t:'עוסק מורשה', d:'מעמד העסק של דניאל; נתוניו מופרדים מהבית.'},
+      {t:'שווי נטו', d:'סך נכסים פחות סך התחייבויות.'},
+    ];
+
+    // ===== 10 · DEV HANDOFF =====
+    const edgeCases = [
+      'סכומים ארוכים מאוד (₪1,000,000+) — קיצור ל־M/K וטולטיפ לערך מלא; מספרים tabular לא נשברים.',
+      'שמות סוחר/קטגוריה ארוכים — חיתוך עם … ו־title מלא; לעולם לא שוברים את הסכום לשורה שנייה.',
+      'קטגוריה בחריגה >200% — הטבעת נעצרת ב־100% ומסומנת "חריגה" עם הסכום המדויק בטקסט.',
+      'סנכרון חלקי — הצגת נתונים אחרונים ידועים עם חותמת זמן + באנר, לא מסך ריק.',
+      'חודש עתידי ללא נתונים בפועל — כל הסכומים מסומנים "תכנון/צפי"; אין "הוצא בפועל".',
+      'תנועת תשלומים שמתפרסת על מספר חודשים — רק החלק החודשי נספר בתקציב הנוכחי.',
+    ];
+    const assumptions = [
+      'משק בית יחיד עם שני בעלים שווי־הרשאות; ריבוי משקי בית מחוץ ל־MVP.',
+      'מטבע יחיד (₪); אין המרות מט״מ בשלב זה.',
+      'סנכרון בנקאי דרך ספק צד־ג׳ (open banking); רענון תקופתי, לא real-time.',
+      'קטגוריזציה אוטומטית קיימת אך המשתמש הוא הסמכות הסופית לתיקון.',
+    ];
+    const openQ = [
+      'האם carry-over (גלגול יתרה) פעיל כברירת מחדל או opt-in? (מוצע: opt-in.)',
+      'עומק גישת רואה החשבון לעסק — צפייה בלבד או גם ייצוא? נדרש אפיון הרשאות.',
+      'האם תובנות ה־AI נוצרות בצד שרת או מקומית, ומה תדירות הרענון?',
+      'טיפול בכרטיס אשראי משותף בין הבית לעסק — כללי פיצול אוטומטי?',
+    ];
+    const doNot = [
+      'אין למסור סטטוס פיננסי בצבע בלבד — תמיד אייקון + טקסט.',
+      'אין לערבב סכומי העסק בתוך תקציב/מאזן/יתרה של הבית.',
+      'אין לשנות את פלטת Calm Financial או להוסיף גרדיאנטים אגרסיביים.',
+      'אין להשתמש ב־left/right — רק תכונות לוגיות (inline) לשמירת RTL.',
+    ];
+
+    // ===== 11 · CHECKLIST =====
+    const checklist = [
+      {t:'כל 14 מסכי הדסקטופ — ברזולוציה מלאה', s:'PNG @2x'},
+      {t:'כל 14 מסכי המובייל — 360px', s:'PNG @2x'},
+      {t:'מצב בהיר — כל המסכים', s:'Light'},
+      {t:'מצב כהה — כל המסכים', s:'Dark'},
+      {t:'ספריית רכיבים — 24 רכיבים עם מצבים', s:'Figma/DC'},
+      {t:'תיעוד טוקנים — Light + Dark', s:'JSON/CSS'},
+      {t:'הערות אינטראקציה — גיליונות, מודאלים, מעברים', s:'MD'},
+      {t:'הערות מרווח — grid/gap/padding לכל מסך', s:'Redlines'},
+      {t:'מצאי אייקונים — Material Symbols Rounded', s:'רשימה'},
+      {t:'מצבי ריק / טעינה / שגיאה — לכל מסך רלוונטי', s:'States'},
+      {t:'הנחיות תוכן ומילון מונחים בעברית', s:'MD'},
+    ];
+
+    this.__computed = { colorRows, typeRows, scaleRows, components, ux, respRows, glossary, edgeCases, assumptions, openQ, doNot, checklist };
+    return Object.assign({ theme, tset, toc, ov, ia, screens, setThemeEv: this.setThemeEv }, this.__computed);
+  }
+}
+</script>
+</body>
+</html>
