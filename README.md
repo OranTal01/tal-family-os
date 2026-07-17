@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Tal Family OS · כספי הבית
 
-## Getting Started
+Private family operating system for the Tal family. First active module: **Finance** —
+a calm, Hebrew-first, RTL-first family finance dashboard ("Financial Calm" design).
 
-First, run the development server:
+> Private software for one household. Mock data only in this phase — no real bank
+> connections, no external services.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000 → redirects to /dashboard
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Commands
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run lint` | ESLint (flat config) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run test` | Vitest (financial engine + component tests) |
+| `npm run test:watch` | Vitest watch mode |
+| `npm run build` | Production build |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+All four checks (lint, typecheck, test, build) must pass before work is considered done.
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
+Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4 ·
+shadcn/ui v4 (base-nova / @base-ui/react) · next-themes · Assistant font ·
+Material Symbols Rounded · zod · date-fns · Vitest + Testing Library.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Documentation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `CLAUDE.md` — permanent engineering source of truth (stack facts, tokens, rules)
+- `docs/PRODUCT_SPEC.md` — product scope, 14 screens, UX/content/a11y rules
+- `docs/ARCHITECTURE.md` — folder structure, principles, deferred decisions
+- `docs/DATA_MODEL.md` — Supabase/PostgreSQL-ready schema (money = bigint agorot)
+- `docs/IMPLEMENTATION_PLAN.md` — phase status
+- `docs/design-system-and-mvp.pdf`, `docs/product-design-handoff.pdf` — the design
+  source of truth (visuals + full spec; `.dc.html` companions embed the raw data)
 
-## Deploy on Vercel
+## Screens (14)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`/dashboard` לוח חודשי · `/budget` תקציב · `/transactions` תנועות ·
+`/transactions/review` לבדיקה · `/planning` תכנון וצפי · `/split` בית מול עסק ·
+`/business` עסק דניאל · `/assets` נכסים וחיסכון · `/insurance` ביטוחים ·
+`/goals` יעדים · `/kids` חיסכון ילדים · `/accounts` חשבונות וכרטיסים ·
+`/daily` סיכום יומי · `/settings` הגדרות
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment
+
+No environment variables are required in the mock-data phase. `.env.example` documents
+the variables the future Supabase phase will introduce. Never commit secrets.
