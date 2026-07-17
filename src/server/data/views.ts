@@ -348,3 +348,256 @@ export async function getReviewScreen(): Promise<{
       .map((c) => ({ id: c.id, name: c.name, icon: c.icon, context: c.context })),
   };
 }
+
+/* ------------------------------ remaining screens ------------------------------ */
+
+export type PlanItem = {
+  id: string;
+  name: string;
+  icon: string;
+  dueLabel: string;
+  amount: Agorot;
+  estimate: boolean;
+  fulfilled: boolean;
+  direction: 'inflow' | 'outflow';
+};
+
+export type PlanningScreen = {
+  month: MonthKey;
+  income: Agorot;
+  uncertainIncome: Agorot;
+  expectedExpenses: Agorot;
+  balance: Agorot;
+  committedInstallments: Agorot;
+  installmentsCount: number;
+  groups: { key: 'fixed' | 'variable_estimate' | 'one_time'; title: string; items: PlanItem[] }[];
+};
+
+export async function getPlanningScreen(month: MonthKey): Promise<PlanningScreen> {
+  const db = await getFinanceDb();
+  const { totalExpectedSpending } = await import('@/lib/finance/projections');
+  const { committedInMonth } = await import('@/lib/finance/installments');
+
+  const toItem = (e: ExpectedTransaction): PlanItem => ({
+    id: e.id,
+    name: e.name,
+    icon: e.icon,
+    dueLabel: e.dueLabel,
+    amount: e.amount,
+    estimate: e.estimate ?? false,
+    fulfilled: e.fulfilled ?? false,
+    direction: e.direction,
+  });
+
+  const outflows = db.expected.filter(
+    (e) => e.month === month && e.direction === 'outflow' && e.context === 'household',
+  );
+  const groups = (
+    [
+      ['fixed', 'קבוע'],
+      ['variable_estimate', 'משתנה · הערכה'],
+      ['one_time', 'חד־פעמי'],
+    ] as const
+  ).map(([key, title]) => ({
+    key,
+    title,
+    items: outflows.filter((e) => e.group === key).map(toItem),
+  }));
+
+  return {
+    month,
+    income: expectedGuaranteedIncome(db.expected, month),
+    uncertainIncome: expectedUncertainIncome(db.expected, month),
+    expectedExpenses: totalExpectedSpending(db.transactions, db.expected, month),
+    balance: monthBalance(db.transactions, db.expected, month),
+    committedInstallments: committedInMonth(db.installmentPlans, month),
+    installmentsCount: db.installmentPlans.filter((p) => committedInMonth([p], month) > 0)
+      .length,
+    groups,
+  };
+}
+
+export type SplitScreen = {
+  household: { income: Agorot; expenses: Agorot; balance: Agorot };
+  business: {
+    revenue: Agorot;
+    expenses: Agorot;
+    profit: Agorot;
+    vatDue: Agorot;
+    nextReportLabel: string;
+  };
+};
+
+export async function getSplitScreen(month: MonthKey): Promise<SplitScreen> {
+  const db = await getFinanceDb();
+  const { totalExpectedSpending } = await import('@/lib/finance/projections');
+  const { summarizeBusiness } = await import('@/lib/finance/business');
+  const b = summarizeBusiness(db.transactions, month, db.business);
+  return {
+    household: {
+      income: expectedGuaranteedIncome(db.expected, month),
+      expenses: totalExpectedSpending(db.transactions, db.expected, month),
+      balance: monthBalance(db.transactions, db.expected, month),
+    },
+    business: {
+      revenue: b.revenue,
+      expenses: b.expenses,
+      profit: b.profitBeforeTax,
+      vatDue: b.vatDueEstimate,
+      nextReportLabel: db.business.nextVatReportLabel,
+    },
+  };
+}
+
+export type BusinessScreen = SplitScreen['business'] & {
+  uncertainIncome: Agorot;
+  transactions: TransactionItem[];
+};
+
+export async function getBusinessScreen(month: MonthKey): Promise<BusinessScreen> {
+  const db = await getFinanceDb();
+  const split = await getSplitScreen(month);
+  const screen = await getTransactionsScreen();
+  return {
+    ...split.business,
+    uncertainIncome: expectedUncertainIncome(
+      db.expected.filter((e) => e.context === 'business'),
+      month,
+    ),
+    transactions: screen.items.filter((t) => t.context === 'business').slice(0, 20),
+  };
+}
+
+export type AssetsScreen = {
+  netWorth: Agorot;
+  totalAssets: Agorot;
+  totalLiabilities: Agorot;
+  rows: {
+    id: string;
+    name: string;
+    subtitle: string;
+    icon: string;
+    chip: string;
+    value: Agorot;
+    liability: boolean;
+  }[];
+};
+
+export async function getAssetsScreen(): Promise<AssetsScreen> {
+  const db = await getFinanceDb();
+  const { summarizeNetWorth } = await import('@/lib/finance/net-worth');
+  const s = summarizeNetWorth(db.assets, db.liabilities);
+  return {
+    netWorth: s.netWorth,
+    totalAssets: s.totalAssets,
+    totalLiabilities: s.totalLiabilities,
+    rows: [
+      ...db.assets.map((a) => ({
+        id: a.id,
+        name: a.name,
+        subtitle: a.subtitle,
+        icon: a.icon,
+        chip: a.chip,
+        value: a.value,
+        liability: false,
+      })),
+      ...db.liabilities.map((l) => ({
+        id: l.id,
+        name: l.name,
+        subtitle: l.subtitle,
+        icon: l.icon,
+        chip: 'התחייבות',
+        value: l.balance,
+        liability: true,
+      })),
+    ],
+  };
+}
+
+export async function getInsuranceScreen() {
+  const db = await getFinanceDb();
+  const totalPremium = db.insurancePolicies.reduce(
+    (sum, p) => sum + p.premiumMonthly,
+    0,
+  ) as Agorot;
+  return { totalPremium, policies: db.insurancePolicies };
+}
+
+export type GoalView = {
+  id: string;
+  name: string;
+  icon: string;
+  target: Agorot;
+  current: Agorot;
+  monthlyDeposit: Agorot;
+  forecastLabel?: string;
+  utilization: number;
+  contributions: { id: string; label: string; dateLabel: string; amount: Agorot }[];
+};
+
+export async function getGoalsScreen(): Promise<GoalView[]> {
+  const db = await getFinanceDb();
+  return db.goals.map((g) => ({
+    id: g.id,
+    name: g.name,
+    icon: g.icon,
+    target: g.target,
+    current: g.current,
+    monthlyDeposit: g.monthlyDeposit,
+    forecastLabel: g.forecastLabel,
+    utilization: g.target > 0 ? (g.current / g.target) * 100 : 0,
+    contributions: db.goalContributions
+      .filter((c) => c.goalId === g.id)
+      .map((c) => ({
+        id: c.id,
+        label: c.label,
+        dateLabel: formatRelativeDay(c.date),
+        amount: c.amount,
+      })),
+  }));
+}
+
+export async function getKidsScreen() {
+  const db = await getFinanceDb();
+  const goals = await getGoalsScreen();
+  const kids = db.household.members.filter((m) => m.kind === 'child');
+  return kids.map((kid) => {
+    const goal = goals.find((g) => db.goals.find((x) => x.id === g.id)?.beneficiaryId === kid.id);
+    return { kid: { id: kid.id, name: kid.name }, goal: goal ?? null };
+  });
+}
+
+export async function getAccountsScreen() {
+  const db = await getFinanceDb();
+  return db.accounts.map((a) => ({
+    id: a.id,
+    name: a.name,
+    subtitle: a.subtitle ?? '',
+    icon: a.icon,
+    sync: a.sync,
+    balance: a.balance ?? null,
+    balanceLabel: a.balanceLabel,
+    context: a.context,
+  }));
+}
+
+export async function getDailyScreen() {
+  const db = await getFinanceDb();
+  const { buildDailySummary } = await import('@/lib/finance/daily-summary');
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const summary = buildDailySummary(db, todayISO);
+  const txnItems = await Promise.all(summary.todayTransactions.map((t) => toTxnListItem(t)));
+  return { summary, txnItems };
+}
+
+export async function getSettingsScreen() {
+  const db = await getFinanceDb();
+  return {
+    members: db.household.members,
+    rules: db.merchantRules.map((r) => ({
+      id: r.id,
+      pattern: r.merchantPattern,
+      categoryName: db.categories.find((c) => c.id === r.categoryId)?.name ?? 'העברה פנימית',
+    })),
+  };
+}
