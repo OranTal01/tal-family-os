@@ -31,19 +31,28 @@ Phases map to logical commits. Status legend: ☐ pending · ◐ in progress · 
       installments, business+VAT info, net worth, daily summary, insights)
 - ☑ 37 Vitest tests green — all §17 required cases + cross-screen consistency guards
 
-## Phase 5 — Screens ◐
-- ◐ 5a: /dashboard, /budget (+ shared category detail sheet/modal, ring grid,
-      server view-models in server/data/views.ts, loading+error states) —
-      implemented, desktop verified visually; pending mobile/budget visual check + commit
-- ☐ 5b: /transactions, /transactions/review (+ txn detail, "זכור כלל זה")
-- ☐ 5c: /planning, /split, /business, /assets, /insurance, /goals, /kids,
-      /accounts, /daily, /settings
-- Every screen: default + loading + empty + error, mobile + desktop, handoff copy
+## Phase 5 — Screens ☑ (`3d035a3`, `21a265c`, `f778f8e`, loading/error follow-up)
+- ☑ 5a: /dashboard, /budget (+ shared category detail sheet/modal, ring grid,
+      server view-models in server/data/views.ts, loading+error states)
+- ☑ 5b: /transactions, /transactions/review (+ txn detail, "זכור כלל זה",
+      CSV export, resolution sheet, loading+error states)
+- ☑ 5c: /planning, /split, /business, /assets, /insurance, /goals, /kids,
+      /accounts, /daily, /settings — all implemented with loading.tsx + error.tsx
+      added in the validation follow-up (all 10 initially shipped without them)
+- All 14 screens now ship default + loading (skeleton matching real layout) +
+  empty (where applicable) + error state, mobile + desktop, handoff copy
 
-## Phase 6 — Validation ☐
-- ☐ lint · typecheck · test · build all green
-- ☐ RTL / Light / Dark / responsive / keyboard review; consistency test across screens
-- ☐ README + this file updated; final report
+## Phase 6 — Validation ☑
+- ☑ lint · typecheck · test (37/37) · build all green
+- ☑ All 14 routes verified 200 via curl smoke test
+- ☑ Visual review via headless Chrome screenshots: dashboard/budget (light+dark,
+      desktop+mobile), transactions/review/planning/split/accounts/daily (desktop) —
+      RTL mirroring confirmed (sidebar on the right, ring progress direction, month
+      stepper arrows), no color-only status anywhere, no horizontal overflow observed
+- ☑ README + this file updated
+- ☐ Full keyboard-navigation pass and Light/Dark parity across all 14 screens not
+      individually screenshotted — spot-checked only (dashboard + budget in both
+      themes); recommend a manual pass before shipping to production
 
 ## Deferred (documented decisions)
 - TanStack Query, Supabase client, Playwright e2e, charting library, real bank sync,
