@@ -245,3 +245,106 @@ export function resolveMonth(raw: string | string[] | undefined): MonthKey {
   const value = Array.isArray(raw) ? raw[0] : raw;
   return value && /^\d{4}-(0[1-9]|1[0-2])$/.test(value) ? (value as MonthKey) : currentMonthKey();
 }
+
+/* ------------------------- transactions & review screens ------------------------ */
+
+export type CategoryOption = {
+  id: string;
+  name: string;
+  icon: string;
+  context: Context;
+};
+
+export type TransactionItem = TxnListItem & {
+  dateISO: string;
+  categoryId?: string;
+  categoryName?: string;
+  accountName: string;
+  context: Context;
+  ownerId?: string;
+  needsReview: boolean;
+};
+
+export type TransactionsScreen = {
+  items: TransactionItem[];
+  categories: CategoryOption[];
+  reviewCount: number;
+};
+
+export async function getTransactionsScreen(): Promise<TransactionsScreen> {
+  const db = await getFinanceDb();
+  for (const a of db.accounts) accountNames.set(a.id, a.name);
+
+  const items: TransactionItem[] = [];
+  for (const t of db.transactions) {
+    const base = await toTxnListItem(t);
+    const category = db.categories.find((c) => c.id === t.categoryId);
+    items.push({
+      ...base,
+      dateISO: t.date,
+      categoryId: t.categoryId,
+      categoryName: category?.name,
+      accountName: accountNames.get(t.accountId) ?? '',
+      context: t.context,
+      ownerId: t.ownerId,
+      needsReview: t.needsReview ?? false,
+    });
+  }
+
+  return {
+    items,
+    categories: activeCategories(db.categories, 'household')
+      .concat(activeCategories(db.categories, 'business'))
+      .map((c) => ({ id: c.id, name: c.name, icon: c.icon, context: c.context })),
+    reviewCount: db.reviewItems.filter((r) => r.status === 'open').length,
+  };
+}
+
+export type ReviewCardView = {
+  id: string;
+  transactionId: string;
+  icon: string;
+  name: string;
+  /** "ויזה כאל · 14 ביולי" */
+  note: string;
+  reasonLabel: string;
+  actionLabel: string;
+  amount: Agorot;
+  suggestedCategoryId?: string;
+  isIncome: boolean;
+};
+
+export async function getReviewScreen(): Promise<{
+  items: ReviewCardView[];
+  categories: CategoryOption[];
+}> {
+  const db = await getFinanceDb();
+  for (const a of db.accounts) accountNames.set(a.id, a.name);
+
+  const items: ReviewCardView[] = [];
+  for (const item of db.reviewItems) {
+    if (item.status !== 'open') continue;
+    const t = db.transactions.find((x) => x.id === item.transactionId);
+    if (!t) continue;
+    const rule = db.merchantRules.find((r) => t.merchant.includes(r.merchantPattern));
+    items.push({
+      id: item.id,
+      transactionId: t.id,
+      icon: t.icon,
+      name: t.merchant,
+      note: `${accountNames.get(t.accountId) ?? ''} · ${formatRelativeDay(t.date)}`,
+      reasonLabel: item.reasonLabel,
+      actionLabel: item.actionLabel,
+      amount: t.amount,
+      suggestedCategoryId: rule?.categoryId,
+      isIncome: t.amount > 0,
+    });
+  }
+
+  return {
+    items,
+    categories: activeCategories(db.categories, 'household')
+      .concat(activeCategories(db.categories, 'business'))
+      .map((c) => ({ id: c.id, name: c.name, icon: c.icon, context: c.context })),
+  };
+}
