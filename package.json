@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:types": "supabase gen types typescript --linked --schema public > src/types/database.generated.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
