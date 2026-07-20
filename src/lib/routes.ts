@@ -21,6 +21,14 @@ export const routes = {
   settings: '/settings',
 } as const;
 
+/**
+ * Auth routes are intentionally kept out of `routes` — that object's keys drive
+ * `mobileActiveKey`'s exhaustive nav map, and `/login` is never a nav destination.
+ */
+export const authRoutes = {
+  login: '/login',
+} as const;
+
 export type RouteKey = keyof typeof routes;
 
 export type NavItem = {

@@ -4,12 +4,17 @@ import { SectionCard } from '@/components/finance/section-card';
 import { Icon } from '@/components/ui/icon';
 import { InviteButton } from '@/features/settings/invite-button';
 import { Preferences } from '@/features/settings/preferences';
+import { SignOutButton } from '@/components/auth/sign-out-button';
 import { getSettingsScreen } from '@/server/data/views';
+import { getCurrentUser } from '@/lib/supabase/dal';
 
 export const metadata: Metadata = { title: 'הגדרות' };
 
 export default async function SettingsPage() {
-  const { members, rules } = await getSettingsScreen();
+  const [{ members, rules }, user] = await Promise.all([
+    getSettingsScreen(),
+    getCurrentUser(),
+  ]);
   const adults = members.filter((m) => m.kind === 'adult');
   const children = members.filter((m) => m.kind === 'child');
 
@@ -58,6 +63,15 @@ export default async function SettingsPage() {
 
         <SectionCard title='העדפות'>
           <Preferences />
+        </SectionCard>
+
+        <SectionCard title='חשבון'>
+          <div className='flex items-center justify-between gap-3'>
+            <span className='truncate text-body font-semibold text-ink-2'>
+              {user?.email}
+            </span>
+            <SignOutButton />
+          </div>
         </SectionCard>
 
         <SectionCard
