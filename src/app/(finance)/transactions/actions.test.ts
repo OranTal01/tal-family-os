@@ -20,6 +20,8 @@ const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   peopleIs: vi.fn(),
   peopleSingle: vi.fn(),
+  categoriesIs: vi.fn(),
+  rulesIs: vi.fn(),
   revalidatePath: vi.fn(),
 }));
 
@@ -62,6 +64,8 @@ function commitFormData(
       fingerprint: 'a'.repeat(64),
       context: 'household',
       kind: 'expense',
+      categoryId: '10000000-0000-4000-8000-000000000001',
+      rememberRule: true,
       allowDuplicate: false,
     },
   ],
@@ -130,7 +134,30 @@ beforeEach(() => {
     data: { id: 'created-person', name: 'אורן' },
     error: null,
   });
+  mocks.categoriesIs.mockResolvedValue({
+    data: [
+      {
+        id: '10000000-0000-4000-8000-000000000001',
+        name: 'סופר וקניות',
+        context: 'household',
+      },
+    ],
+    error: null,
+  });
+  mocks.rulesIs.mockResolvedValue({ data: [], error: null });
   mocks.from.mockImplementation((table: string) => {
+    if (table === 'categories' || table === 'merchant_rules') {
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            is:
+              table === 'categories'
+                ? mocks.categoriesIs
+                : mocks.rulesIs,
+          })),
+        })),
+      };
+    }
     if (table !== 'people') throw new Error(`Unexpected table: ${table}`);
     return {
       select: vi.fn(() => ({
@@ -151,7 +178,7 @@ beforeEach(() => {
         batch_id: 'batch-1',
         inserted_count: 1,
         duplicate_count: 0,
-        review_count: 1,
+        review_count: 0,
       },
     ],
     error: null,
@@ -203,6 +230,59 @@ describe('previewTransactionImportAction', () => {
       expect.any(Buffer),
       'transactions.xlsx',
     );
+  });
+
+  it('applies a private learned merchant rule to the preview', async () => {
+    mocks.parseTransactionWorkbook.mockResolvedValue({
+      ...preview,
+      candidates: [
+        {
+          ...preview.candidates[0],
+          merchant: '  WOLT   ישראל ',
+          suggestedContext: undefined,
+          reviewReasons: ['confirm_context'],
+        },
+      ],
+    });
+    mocks.categoriesIs.mockResolvedValue({
+      data: [
+        {
+          id: '10000000-0000-4000-8000-000000000003',
+          name: 'מסעדות ומשלוחים',
+          context: 'household',
+        },
+      ],
+      error: null,
+    });
+    mocks.rulesIs.mockResolvedValue({
+      data: [
+        {
+          merchant_pattern: 'wolt ישראל',
+          category_id: '10000000-0000-4000-8000-000000000003',
+          context: 'household',
+        },
+      ],
+      error: null,
+    });
+
+    const result = await previewTransactionImportAction(
+      { status: 'idle', message: '' },
+      fileFormData(),
+    );
+
+    expect(result).toMatchObject({
+      status: 'preview',
+      preview: {
+        candidates: [
+          {
+            suggestedContext: 'household',
+            suggestedCategoryId:
+              '10000000-0000-4000-8000-000000000003',
+            suggestedCategorySource: 'learned_rule',
+          },
+        ],
+      },
+    });
   });
 
   it('maps parser failures without leaking workbook contents', async () => {
@@ -258,7 +338,7 @@ describe('commitTransactionImportAction', () => {
       batchId: 'batch-1',
       insertedCount: 1,
       duplicateCount: 0,
-      reviewCount: 1,
+      reviewCount: 0,
       skippedCount: 0,
     });
     expect(mocks.parseTransactionWorkbook).toHaveBeenCalledWith(
@@ -266,7 +346,7 @@ describe('commitTransactionImportAction', () => {
       'transactions.xlsx',
     );
     expect(mocks.rpc).toHaveBeenCalledWith(
-      'commit_transaction_import',
+      'commit_categorized_transaction_import',
       expect.objectContaining({
         p_household_id: 'household-1',
         p_provider: 'cal',
@@ -278,8 +358,10 @@ describe('commitTransactionImportAction', () => {
             fingerprint: 'a'.repeat(64),
             amount: -1_000,
             context: 'household',
+            category_id: '10000000-0000-4000-8000-000000000001',
             owner_person_id: 'person-oran',
             kind: 'expense',
+            remember_rule: true,
           }),
         ],
       }),
@@ -295,6 +377,8 @@ describe('commitTransactionImportAction', () => {
           fingerprint: 'b'.repeat(64),
           context: 'household',
           kind: 'expense',
+          categoryId: '10000000-0000-4000-8000-000000000001',
+          rememberRule: false,
           allowDuplicate: false,
         },
       ]),

@@ -9,6 +9,7 @@ import {
   MAX_IMPORT_FILE_BYTES,
   parseTransactionWorkbook,
 } from '@/lib/imports/workbook';
+import { suggestCandidateCategorization } from '@/lib/imports/categorization';
 import type {
   ImportActionState,
   ImportCommitActionState,
@@ -46,6 +47,8 @@ const importDecisionSchema = z.object({
   context: z.enum(['household', 'business']),
   kind: z.enum(['expense', 'income', 'refund', 'transfer']),
   incomeClass: z.enum(['salary', 'business', 'other']).optional(),
+  categoryId: z.string().uuid().optional(),
+  rememberRule: z.boolean().default(false),
   allowDuplicate: z.boolean(),
 });
 
@@ -165,6 +168,45 @@ async function resolveImportOwners({
   return result;
 }
 
+async function addImportCategorySuggestions(
+  preview: ImportPreview,
+  householdId: string,
+): Promise<ImportPreview> {
+  const supabase = await createClient();
+  const [categoriesResult, rulesResult] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('id, name, context')
+      .eq('household_id', householdId)
+      .is('archived_at', null),
+    supabase
+      .from('merchant_rules')
+      .select('merchant_pattern, category_id, context')
+      .eq('household_id', householdId)
+      .is('archived_at', null),
+  ]);
+  const error = categoriesResult.error ?? rulesResult.error;
+  if (error) {
+    throw new Error('Unable to load import categorization data', {
+      cause: error,
+    });
+  }
+
+  const categories = categoriesResult.data ?? [];
+  const merchantRules = rulesResult.data ?? [];
+  return {
+    ...preview,
+    candidates: preview.candidates.map((candidate) => ({
+      ...candidate,
+      ...suggestCandidateCategorization(
+        candidate,
+        categories,
+        merchantRules,
+      ),
+    })),
+  };
+}
+
 function importOwnerHint(
   accountOwner: ImportOwnerHint,
   decision: ImportDecision,
@@ -212,7 +254,11 @@ export async function previewTransactionImportAction(
   }
 
   try {
-    const { preview } = await readValidatedWorkbook(value);
+    const workbook = await readValidatedWorkbook(value);
+    const preview = await addImportCategorySuggestions(
+      workbook.preview,
+      membership.householdId,
+    );
     return {
       status: 'preview',
       message: `זוהו ${preview.stats.detected} תנועות. דבר עדיין לא נשמר.`,
@@ -325,6 +371,19 @@ export async function commitTransactionImportAction(
         };
       }
 
+      const needsExpenseCategory =
+        decision.kind === 'expense' || decision.kind === 'refund';
+      if (
+        (needsExpenseCategory && !decision.categoryId) ||
+        (!needsExpenseCategory && decision.categoryId) ||
+        (decision.rememberRule && !needsExpenseCategory)
+      ) {
+        return {
+          status: 'error',
+          message: `הקטגוריה בשורה ${candidate.sourceRow} אינה מתאימה לסוג התנועה.`,
+        };
+      }
+
       if (decision.kind === 'transfer') {
         skippedCount += 1;
         continue;
@@ -383,7 +442,7 @@ export async function commitTransactionImportAction(
         merchant: candidate.merchant,
         description: candidate.description ?? null,
         reference: candidate.reference ?? null,
-        category_id: null,
+        category_id: decision.categoryId ?? null,
         context: decision.context,
         owner_person_id:
           ownerHint === 'oran' || ownerHint === 'danielle'
@@ -392,6 +451,7 @@ export async function commitTransactionImportAction(
         kind: decision.kind,
         income_class: decision.incomeClass ?? null,
         status: candidate.status,
+        remember_rule: decision.rememberRule,
         allow_duplicate:
           decision.allowDuplicate &&
           candidate.reviewReasons.includes('possible_duplicate'),
@@ -399,17 +459,20 @@ export async function commitTransactionImportAction(
     );
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('commit_transaction_import', {
-      p_household_id: membership.householdId,
-      p_provider: preview.provider,
-      p_display_file_name: file.name
-        .replaceAll(/[\\/]/g, '-')
-        .slice(0, 160),
-      p_file_sha256: createHash('sha256').update(buffer).digest('hex'),
-      p_parser_version: 'xlsx-v1',
-      p_rows: rows,
-      p_skipped_count: skippedCount,
-    });
+    const { data, error } = await supabase.rpc(
+      'commit_categorized_transaction_import',
+      {
+        p_household_id: membership.householdId,
+        p_provider: preview.provider,
+        p_display_file_name: file.name
+          .replaceAll(/[\\/]/g, '-')
+          .slice(0, 160),
+        p_file_sha256: createHash('sha256').update(buffer).digest('hex'),
+        p_parser_version: 'xlsx-v1',
+        p_rows: rows,
+        p_skipped_count: skippedCount,
+      },
+    );
 
     if (error) {
       if (error.message.includes('source file already has an active import')) {

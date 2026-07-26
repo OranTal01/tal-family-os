@@ -20,11 +20,14 @@ import type {
 } from '@/types/domain';
 import type {
   ImportCandidate,
+  ImportCategorySuggestionSource,
   ImportCurrency,
   ImportDecision,
   ImportReviewReason,
 } from '@/lib/imports/types';
+import { suggestSmartCategory } from '@/lib/imports/categorization';
 import { cn } from '@/lib/utils';
+import type { CategoryOption } from '@/server/data/views';
 
 const PAGE_SIZE = 40;
 
@@ -52,6 +55,9 @@ type ReviewChoice = {
   context?: Context;
   kind: TransactionKind;
   incomeClass?: IncomeClass;
+  categoryId?: string;
+  categorySuggestionSource?: ImportCategorySuggestionSource;
+  rememberRule: boolean;
   allowDuplicate: boolean;
 };
 
@@ -82,7 +88,11 @@ function candidateKey(candidate: ImportCandidate): string {
 function isChoiceComplete(choice: ReviewChoice): boolean {
   return Boolean(
     choice.context &&
-      (choice.kind !== 'income' || choice.incomeClass),
+      (choice.kind === 'income'
+        ? choice.incomeClass
+        : choice.kind === 'expense' || choice.kind === 'refund'
+          ? choice.categoryId
+          : true),
   );
 }
 
@@ -95,10 +105,12 @@ function isIncluded(
 
 function ImportReviewRow({
   candidate,
+  categories,
   choice,
   onChange,
 }: {
   candidate: ImportCandidate;
+  categories: CategoryOption[];
   choice: ReviewChoice;
   onChange: (next: ReviewChoice) => void;
 }) {
@@ -110,6 +122,38 @@ function ImportReviewRow({
       ? option.value === 'expense' || option.value === 'transfer'
       : option.value !== 'expense',
   );
+  const availableCategories = categories.filter(
+    (category) => category.context === choice.context,
+  );
+  const needsCategory =
+    choice.kind === 'expense' || choice.kind === 'refund';
+
+  function changeContext(context: Context) {
+    const currentCategory = categories.find(
+      (category) =>
+        category.id === choice.categoryId &&
+        category.context === context,
+    );
+    const smartCategory =
+      currentCategory ??
+      (needsCategory
+        ? suggestSmartCategory(candidate.merchant, context, categories)
+        : undefined);
+
+    onChange({
+      ...choice,
+      context,
+      categoryId: smartCategory?.id,
+      categorySuggestionSource: currentCategory
+        ? choice.categorySuggestionSource
+        : smartCategory
+          ? 'smart_rule'
+          : undefined,
+      rememberRule: currentCategory
+        ? choice.rememberRule
+        : Boolean(smartCategory),
+    });
+  }
 
   return (
     <li className='py-4'>
@@ -168,9 +212,7 @@ function ImportReviewRow({
                   role='radio'
                   aria-checked={active}
                   disabled={pending}
-                  onClick={() =>
-                    onChange({ ...choice, context: option.value })
-                  }
+                  onClick={() => changeContext(option.value)}
                   className={cn(
                     'flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-caption font-bold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
                     active
@@ -198,6 +240,18 @@ function ImportReviewRow({
                 kind: value as TransactionKind,
                 incomeClass:
                   value === 'income' ? choice.incomeClass : undefined,
+                categoryId:
+                  value === 'expense' || value === 'refund'
+                    ? choice.categoryId
+                    : undefined,
+                categorySuggestionSource:
+                  value === 'expense' || value === 'refund'
+                    ? choice.categorySuggestionSource
+                    : undefined,
+                rememberRule:
+                  value === 'expense' || value === 'refund'
+                    ? choice.rememberRule
+                    : false,
               })
             }
           >
@@ -242,6 +296,51 @@ function ImportReviewRow({
               </SelectContent>
             </Select>
           </div>
+        ) : needsCategory ? (
+          <div className='flex flex-col gap-1.5'>
+            <div className='flex items-center justify-between gap-2'>
+              <Label htmlFor={`${idPrefix}-category`}>קטגוריה</Label>
+              {choice.categorySuggestionSource && (
+                <Badge variant='secondary'>
+                  {choice.categorySuggestionSource === 'learned_rule'
+                    ? 'נלמד בעבר'
+                    : 'הצעה חכמה'}
+                </Badge>
+              )}
+            </div>
+            <Select
+              value={choice.categoryId ?? ''}
+              disabled={pending || !choice.context}
+              onValueChange={(categoryId) =>
+                onChange({
+                  ...choice,
+                  categoryId: categoryId ?? undefined,
+                  categorySuggestionSource: undefined,
+                  rememberRule: Boolean(categoryId),
+                })
+              }
+            >
+              <SelectTrigger
+                id={`${idPrefix}-category`}
+                className='w-full'
+              >
+                <SelectValue
+                  placeholder={
+                    choice.context
+                      ? 'בחירת קטגוריה'
+                      : 'קודם בוחרים משק בית או עסק'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         ) : (
           <div
             className={cn(
@@ -259,6 +358,37 @@ function ImportReviewRow({
           </div>
         )}
       </div>
+
+      {needsCategory &&
+        choice.categoryId &&
+        !pending &&
+        choice.categorySuggestionSource !== 'learned_rule' && (
+          <div className='mt-3 flex items-center justify-between gap-3 rounded-md bg-accent-soft px-3 py-2.5'>
+            <span className='flex flex-col'>
+              <span className='text-caption font-bold text-ink'>
+                לזכור את בית העסק לפעם הבאה
+              </span>
+              <span className='text-caption font-semibold text-mut'>
+                בפעם הבאה נציע אוטומטית את אותה קטגוריה באותו הקשר.
+              </span>
+            </span>
+            <Switch
+              aria-label={`זכור את ${candidate.merchant} לפעם הבאה`}
+              checked={choice.rememberRule}
+              onCheckedChange={(rememberRule) =>
+                onChange({ ...choice, rememberRule })
+              }
+            />
+          </div>
+        )}
+
+      {needsCategory &&
+        choice.categorySuggestionSource === 'learned_rule' &&
+        !pending && (
+          <p className='mt-2 text-caption font-semibold text-pos-ink'>
+            הקטגוריה נבחרה לפי תיקון ששמרתם בייבוא קודם.
+          </p>
+        )}
 
       {choice.kind === 'transfer' && (
         <p className='mt-2 text-caption font-semibold text-mut'>
@@ -297,11 +427,13 @@ function ImportReviewRow({
 
 export function ImportReviewList({
   candidates,
+  categories,
   skipped,
   saving = false,
   onSave,
 }: {
   candidates: ImportCandidate[];
+  categories: CategoryOption[];
   skipped: number;
   saving?: boolean;
   onSave: (decisions: ImportDecision[]) => void;
@@ -314,6 +446,12 @@ export function ImportReviewList({
         {
           context: candidate.suggestedContext,
           kind: candidate.suggestedKind,
+          categoryId: candidate.suggestedCategoryId,
+          categorySuggestionSource:
+            candidate.suggestedCategorySource,
+          rememberRule:
+            Boolean(candidate.suggestedCategoryId) &&
+            candidate.suggestedCategorySource !== 'learned_rule',
           allowDuplicate: false,
         },
       ]),
@@ -335,6 +473,8 @@ export function ImportReviewList({
             context: choice.context!,
             kind: choice.kind,
             incomeClass: choice.incomeClass,
+            categoryId: choice.categoryId,
+            rememberRule: choice.rememberRule,
             allowDuplicate: choice.allowDuplicate,
           };
         }),
@@ -360,6 +500,8 @@ export function ImportReviewList({
             context: choice.context ?? 'household',
             kind: choice.kind,
             incomeClass: choice.incomeClass,
+            categoryId: choice.categoryId,
+            rememberRule: choice.rememberRule,
             allowDuplicate: choice.allowDuplicate,
           };
         }),
@@ -397,6 +539,7 @@ export function ImportReviewList({
             <ImportReviewRow
               key={key}
               candidate={candidate}
+              categories={categories}
               choice={choices[key]}
               onChange={(next) =>
                 setChoices((current) => ({ ...current, [key]: next }))

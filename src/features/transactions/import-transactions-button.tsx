@@ -30,8 +30,13 @@ import {
   initialImportCommitActionState,
   type ImportDecision,
 } from '@/lib/imports/types';
+import type { CategoryOption } from '@/server/data/views';
 
-export function ImportTransactionsButton() {
+export function ImportTransactionsButton({
+  categories,
+}: {
+  categories: CategoryOption[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -194,6 +199,7 @@ export function ImportTransactionsButton() {
                     preview.candidates.at(-1)?.fingerprint,
                   ].join(':')}
                   candidates={preview.candidates}
+                  categories={categories}
                   skipped={preview.stats.skipped}
                   saving={saving}
                   onSave={saveTransactions}

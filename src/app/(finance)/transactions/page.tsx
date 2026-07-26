@@ -16,7 +16,12 @@ export default async function TransactionsPage({
 
   return (
     <PageContainer>
-      <PageHeader title='תנועות' actions={<ImportTransactionsButton />} />
+      <PageHeader
+        title='תנועות'
+        actions={
+          <ImportTransactionsButton categories={data.categories} />
+        }
+      />
       <TransactionsView
         items={data.items}
         categories={data.categories}

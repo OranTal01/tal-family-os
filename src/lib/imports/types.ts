@@ -9,6 +9,9 @@ export type ImportProvider = 'fibi' | 'cal' | 'isracard';
 export type ImportOwnerHint = 'oran' | 'danielle' | 'shared' | 'unknown';
 export type ImportCurrency = 'ILS' | 'USD' | 'EUR' | 'GBP';
 export type ImportTransactionStatus = 'cleared' | 'pending';
+export type ImportCategorySuggestionSource =
+  | 'learned_rule'
+  | 'smart_rule';
 
 export type ImportReviewReason =
   | 'possible_duplicate'
@@ -48,6 +51,8 @@ export type ImportCandidate = {
   status: ImportTransactionStatus;
   suggestedKind: TransactionKind;
   suggestedContext?: Context;
+  suggestedCategoryId?: string;
+  suggestedCategorySource?: ImportCategorySuggestionSource;
   reviewReasons: ImportReviewReason[];
   eligible: boolean;
 };
@@ -99,6 +104,8 @@ export type ImportDecision = {
   context: Context;
   kind: TransactionKind;
   incomeClass?: IncomeClass;
+  categoryId?: string;
+  rememberRule: boolean;
   allowDuplicate: boolean;
 };
 

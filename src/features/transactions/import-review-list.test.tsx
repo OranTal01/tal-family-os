@@ -5,6 +5,21 @@ import type { ImportCandidate } from '@/lib/imports/types';
 import { agorot } from '@/types/money';
 import { ImportReviewList } from './import-review-list';
 
+const categories = [
+  {
+    id: '10000000-0000-4000-8000-000000000001',
+    name: 'סופר וקניות',
+    icon: 'shopping_cart',
+    context: 'household' as const,
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000002',
+    name: 'ציוד וטכנולוגיה',
+    icon: 'devices',
+    context: 'business' as const,
+  },
+];
+
 const candidates: ImportCandidate[] = [
   {
     id: 'danielle-expense',
@@ -54,6 +69,7 @@ describe('ImportReviewList', () => {
     render(
       <ImportReviewList
         candidates={candidates}
+        categories={categories}
         skipped={0}
         onSave={onSave}
       />,
@@ -66,7 +82,17 @@ describe('ImportReviewList', () => {
     await user.click(
       within(expenseRow!).getByRole('radio', { name: 'עסק' }),
     );
+    expect(screen.getByText('0 תנועות מוכנות לשמירה')).toBeInTheDocument();
+    await user.click(within(expenseRow!).getByLabelText('קטגוריה'));
+    await user.click(
+      await screen.findByRole('option', { name: 'ציוד וטכנולוגיה' }),
+    );
     expect(screen.getByText('1 תנועות מוכנות לשמירה')).toBeInTheDocument();
+    expect(
+      within(expenseRow!).getByRole('switch', {
+        name: 'זכור את צילום לעסק לפעם הבאה',
+      }),
+    ).toBeChecked();
 
     const incomeRow = screen.getByText('תשלום מלקוחה בביט').closest('li');
     expect(incomeRow).not.toBeNull();
@@ -94,12 +120,15 @@ describe('ImportReviewList', () => {
         sourceRow: 10,
         context: 'business',
         kind: 'expense',
+        categoryId: '10000000-0000-4000-8000-000000000002',
+        rememberRule: true,
       }),
       expect.objectContaining({
         sourceRow: 11,
         context: 'business',
         kind: 'income',
         incomeClass: 'business',
+        rememberRule: false,
       }),
     ]);
   });

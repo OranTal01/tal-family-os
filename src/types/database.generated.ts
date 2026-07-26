@@ -1832,6 +1832,23 @@ export type Database = {
         Args: { p_invitation_id: string }
         Returns: string
       }
+      commit_categorized_transaction_import: {
+        Args: {
+          p_display_file_name: string
+          p_file_sha256: string
+          p_household_id: string
+          p_parser_version: string
+          p_provider: string
+          p_rows: Json
+          p_skipped_count?: number
+        }
+        Returns: {
+          batch_id: string
+          duplicate_count: number
+          inserted_count: number
+          review_count: number
+        }[]
+      }
       commit_transaction_import: {
         Args: {
           p_display_file_name: string

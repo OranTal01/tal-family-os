@@ -166,12 +166,24 @@ select extensions.is(
 
 select extensions.is(
   (
-    select count(*)
-      from public.categories c
-     where c.household_id = (select first_id from bootstrap_results)
+    (select count(*)
+       from public.financial_accounts fa
+      where fa.household_id = (select first_id from bootstrap_results))
+    +
+    (select count(*)
+       from public.transactions t
+      where t.household_id = (select first_id from bootstrap_results))
+    +
+    (select count(*)
+       from public.monthly_budgets mb
+      where mb.household_id = (select first_id from bootstrap_results))
+    +
+    (select count(*)
+       from public.monthly_budget_items mbi
+      where mbi.household_id = (select first_id from bootstrap_results))
   ),
   0::bigint,
-  'bootstrap does not seed Finance data'
+  'bootstrap seeds category names but no accounts, transactions, budgets, or amounts'
 );
 
 -- A household created by the old RPC had no linked `people` row. A retry

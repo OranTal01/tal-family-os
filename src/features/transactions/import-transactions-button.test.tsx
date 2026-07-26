@@ -15,7 +15,7 @@ vi.mock('next/navigation', () => ({
 describe('ImportTransactionsButton', () => {
   it('opens an accessible XLSX upload dialog with preview-only guidance', async () => {
     const user = userEvent.setup();
-    render(<ImportTransactionsButton />);
+    render(<ImportTransactionsButton categories={[]} />);
 
     await user.click(
       screen.getByRole('button', { name: 'ייבוא Excel' }),
