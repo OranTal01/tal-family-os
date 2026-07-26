@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import type {
   Context,
   IncomeClass,
@@ -20,6 +21,7 @@ import type {
 import type {
   ImportCandidate,
   ImportCurrency,
+  ImportDecision,
   ImportReviewReason,
 } from '@/lib/imports/types';
 import { cn } from '@/lib/utils';
@@ -50,6 +52,7 @@ type ReviewChoice = {
   context?: Context;
   kind: TransactionKind;
   incomeClass?: IncomeClass;
+  allowDuplicate: boolean;
 };
 
 const currencyFormatters = new Map<ImportCurrency, Intl.NumberFormat>();
@@ -83,6 +86,13 @@ function isChoiceComplete(choice: ReviewChoice): boolean {
   );
 }
 
+function isIncluded(
+  candidate: ImportCandidate,
+  choice: ReviewChoice,
+): boolean {
+  return candidate.status === 'cleared' && choice.kind !== 'transfer';
+}
+
 function ImportReviewRow({
   candidate,
   choice,
@@ -94,6 +104,12 @@ function ImportReviewRow({
 }) {
   const idPrefix = `import-${candidate.id}-${candidate.sourceRow}`;
   const complete = isChoiceComplete(choice);
+  const pending = candidate.status === 'pending';
+  const availableKindOptions = kindOptions.filter((option) =>
+    candidate.amount < 0
+      ? option.value === 'expense' || option.value === 'transfer'
+      : option.value !== 'expense',
+  );
 
   return (
     <li className='py-4'>
@@ -151,6 +167,7 @@ function ImportReviewRow({
                   type='button'
                   role='radio'
                   aria-checked={active}
+                  disabled={pending}
                   onClick={() =>
                     onChange({ ...choice, context: option.value })
                   }
@@ -159,6 +176,7 @@ function ImportReviewRow({
                     active
                       ? 'bg-accent text-accent-foreground shadow-sm'
                       : 'text-mut hover:text-ink-2',
+                    pending && 'cursor-not-allowed opacity-50',
                   )}
                 >
                   <Icon name={option.icon} className='text-[16px]' />
@@ -173,6 +191,7 @@ function ImportReviewRow({
           <Label htmlFor={`${idPrefix}-kind`}>סוג תנועה</Label>
           <Select
             value={choice.kind}
+            disabled={pending}
             onValueChange={(value) =>
               onChange({
                 ...choice,
@@ -186,7 +205,7 @@ function ImportReviewRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {kindOptions.map((option) => (
+              {availableKindOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -200,6 +219,7 @@ function ImportReviewRow({
             <Label htmlFor={`${idPrefix}-income-class`}>סיווג הכנסה</Label>
             <Select
               value={choice.incomeClass ?? ''}
+              disabled={pending}
               onValueChange={(value) =>
                 onChange({
                   ...choice,
@@ -242,9 +262,34 @@ function ImportReviewRow({
 
       {choice.kind === 'transfer' && (
         <p className='mt-2 text-caption font-semibold text-mut'>
-          לפני שמירה נבחר גם את חשבון היעד כדי ליצור שתי תנועות העברה
-          תואמות.
+          התנועה לא תישמר בייבוא הזה. בהמשך נחבר אותה לחשבון היעד וניצור
+          שתי תנועות העברה תואמות.
         </p>
+      )}
+
+      {pending && (
+        <p className='mt-2 text-caption font-semibold text-warn-ink'>
+          התנועה עדיין ממתינה אצל חברת האשראי ולכן לא תישמר כעת.
+        </p>
+      )}
+
+      {candidate.reviewReasons.includes('possible_duplicate') && !pending && (
+        <label className='mt-3 flex items-center justify-between gap-3 rounded-md bg-warn-soft px-3 py-2.5'>
+          <span className='flex flex-col'>
+            <span className='text-caption font-bold text-warn-ink'>
+              זו תנועה אמיתית נוספת
+            </span>
+            <span className='text-caption font-semibold text-mut'>
+              יש להפעיל רק אם זו אינה כפילות של אותה עסקה.
+            </span>
+          </span>
+          <Switch
+            checked={choice.allowDuplicate}
+            onCheckedChange={(allowDuplicate) =>
+              onChange({ ...choice, allowDuplicate })
+            }
+          />
+        </label>
       )}
     </li>
   );
@@ -253,9 +298,13 @@ function ImportReviewRow({
 export function ImportReviewList({
   candidates,
   skipped,
+  saving = false,
+  onSave,
 }: {
   candidates: ImportCandidate[];
   skipped: number;
+  saving?: boolean;
+  onSave: (decisions: ImportDecision[]) => void;
 }) {
   const [limit, setLimit] = useState(PAGE_SIZE);
   const [choices, setChoices] = useState<Record<string, ReviewChoice>>(() =>
@@ -265,18 +314,62 @@ export function ImportReviewList({
         {
           context: candidate.suggestedContext,
           kind: candidate.suggestedKind,
+          allowDuplicate: false,
         },
       ]),
     ),
   );
 
-  const completeCount = useMemo(
+  const readyDecisions = useMemo(
     () =>
-      candidates.filter((candidate) =>
-        isChoiceComplete(choices[candidateKey(candidate)]),
-      ).length,
+      candidates
+        .filter((candidate) => {
+          const choice = choices[candidateKey(candidate)];
+          return isIncluded(candidate, choice) && isChoiceComplete(choice);
+        })
+        .map((candidate): ImportDecision => {
+          const choice = choices[candidateKey(candidate)];
+          return {
+            sourceRow: candidate.sourceRow,
+            fingerprint: candidate.fingerprint,
+            context: choice.context!,
+            kind: choice.kind,
+            incomeClass: choice.incomeClass,
+            allowDuplicate: choice.allowDuplicate,
+          };
+        }),
     [candidates, choices],
   );
+  const unresolvedCount = useMemo(
+    () =>
+      candidates.filter((candidate) => {
+        const choice = choices[candidateKey(candidate)];
+        return isIncluded(candidate, choice) && !isChoiceComplete(choice);
+      }).length,
+    [candidates, choices],
+  );
+  const commitDecisions = useMemo(
+    () =>
+      candidates
+        .filter((candidate) => candidate.status === 'cleared')
+        .map((candidate): ImportDecision => {
+          const choice = choices[candidateKey(candidate)];
+          return {
+            sourceRow: candidate.sourceRow,
+            fingerprint: candidate.fingerprint,
+            context: choice.context ?? 'household',
+            kind: choice.kind,
+            incomeClass: choice.incomeClass,
+            allowDuplicate: choice.allowDuplicate,
+          };
+        }),
+    [candidates, choices],
+  );
+  const excludedCount =
+    candidates.filter((candidate) => {
+      const choice = choices[candidateKey(candidate)];
+      return !isIncluded(candidate, choice);
+    }).length + skipped;
   const visibleCandidates = candidates.slice(0, limit);
 
   return (
@@ -287,7 +380,7 @@ export function ImportReviewList({
             סקירה וסיווג
           </h3>
           <p className='mt-0.5 text-caption font-semibold text-mut'>
-            {completeCount} מתוך {candidates.length} סווגו
+            {readyDecisions.length} תנועות מוכנות לשמירה
           </p>
         </div>
         <span className='text-caption font-semibold text-mut'>
@@ -327,10 +420,23 @@ export function ImportReviewList({
 
       <div className='flex flex-col gap-2 border-t border-line py-3 sm:flex-row sm:items-center sm:justify-between'>
         <p className='text-caption font-semibold text-mut'>
-          הסיווג נשמר כרגע במסך בלבד. עדיין לא נכתבו נתונים למסד הנתונים.
+          {unresolvedCount > 0
+            ? `נדרש להשלים סיווג של ${unresolvedCount} תנועות.`
+            : excludedCount > 0
+              ? `${excludedCount} שורות ממתינות, העברות או שורות לא תקינות לא יישמרו.`
+              : 'כל התנועות מוכנות לשמירה.'}
         </p>
-        <Button type='button' disabled>
-          שמירת התנועות
+        <Button
+          type='button'
+          disabled={
+            saving || unresolvedCount > 0 || readyDecisions.length === 0
+          }
+          onClick={() => onSave(commitDecisions)}
+        >
+          <Icon name='save' className='text-[16px]' />
+          {saving
+            ? 'שומרים…'
+            : `שמירת ${readyDecisions.length} תנועות`}
         </Button>
       </div>
     </div>

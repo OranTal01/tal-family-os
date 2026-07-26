@@ -1,4 +1,8 @@
-import type { Context, TransactionKind } from '@/types/domain';
+import type {
+  Context,
+  IncomeClass,
+  TransactionKind,
+} from '@/types/domain';
 import type { Agorot } from '@/types/money';
 
 export type ImportProvider = 'fibi' | 'cal' | 'isracard';
@@ -89,7 +93,34 @@ export type ImportActionState =
   | { status: 'error'; message: string }
   | { status: 'preview'; message: string; preview: ImportPreview };
 
+export type ImportDecision = {
+  sourceRow: number;
+  fingerprint: string;
+  context: Context;
+  kind: TransactionKind;
+  incomeClass?: IncomeClass;
+  allowDuplicate: boolean;
+};
+
+export type ImportCommitActionState =
+  | { status: 'idle'; message: string }
+  | { status: 'error'; message: string }
+  | {
+      status: 'success';
+      message: string;
+      batchId: string;
+      insertedCount: number;
+      duplicateCount: number;
+      reviewCount: number;
+      skippedCount: number;
+    };
+
 export const initialImportActionState: ImportActionState = {
+  status: 'idle',
+  message: '',
+};
+
+export const initialImportCommitActionState: ImportCommitActionState = {
   status: 'idle',
   message: '',
 };

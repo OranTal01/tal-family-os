@@ -1,7 +1,11 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { previewTransactionImportAction } from '@/app/(finance)/transactions/actions';
+import { useActionState, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  commitTransactionImportAction,
+  previewTransactionImportAction,
+} from '@/app/(finance)/transactions/actions';
 import { AlertBanner } from '@/components/finance/alert-banner';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,15 +27,49 @@ import { Label } from '@/components/ui/label';
 import { ImportReviewList } from '@/features/transactions/import-review-list';
 import {
   initialImportActionState,
+  initialImportCommitActionState,
+  type ImportDecision,
 } from '@/lib/imports/types';
 
 export function ImportTransactionsButton() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [commitState, setCommitState] = useState(
+    initialImportCommitActionState,
+  );
+  const [saving, startSaving] = useTransition();
   const [state, formAction, pending] = useActionState(
     previewTransactionImportAction,
     initialImportActionState,
   );
-  const preview = state.status === 'preview' ? state.preview : null;
+  const preview =
+    state.status === 'preview' && selectedFile === previewFile
+      ? state.preview
+      : null;
+
+  function saveTransactions(decisions: ImportDecision[]) {
+    if (!selectedFile) {
+      setCommitState({
+        status: 'error',
+        message: 'יש לבחור מחדש את קובץ ה־Excel לפני השמירה.',
+      });
+      return;
+    }
+
+    setCommitState(initialImportCommitActionState);
+    startSaving(async () => {
+      const formData = new FormData();
+      formData.set('file', selectedFile);
+      formData.set('decisions', JSON.stringify(decisions));
+      const result = await commitTransactionImportAction(formData);
+      setCommitState(result);
+      if (result.status === 'success') {
+        router.refresh();
+      }
+    });
+  }
 
   return (
     <>
@@ -54,6 +92,10 @@ export function ImportTransactionsButton() {
 
           <form
             action={formAction}
+            onSubmit={() => {
+              setPreviewFile(selectedFile);
+              setCommitState(initialImportCommitActionState);
+            }}
             className='flex flex-col gap-3 rounded-lg border border-line bg-surface-2 p-3'
           >
             <div className='flex flex-col gap-2'>
@@ -64,6 +106,10 @@ export function ImportTransactionsButton() {
                 type='file'
                 accept='.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 required
+                onChange={(event) => {
+                  setSelectedFile(event.target.files?.[0] ?? null);
+                  setCommitState(initialImportCommitActionState);
+                }}
                 className='h-11 cursor-pointer bg-surface file:me-3 file:border-0 file:bg-transparent file:font-bold'
               />
               <p className='text-caption font-semibold text-mut'>
@@ -138,23 +184,51 @@ export function ImportTransactionsButton() {
                 </ul>
               </div>
 
-              <ImportReviewList
-                key={[
-                  preview.provider,
-                  preview.fileName,
-                  preview.candidates.length,
-                  preview.candidates.at(0)?.fingerprint,
-                  preview.candidates.at(-1)?.fingerprint,
-                ].join(':')}
-                candidates={preview.candidates}
-                skipped={preview.stats.skipped}
-              />
+              {commitState.status !== 'success' && (
+                <ImportReviewList
+                  key={[
+                    preview.provider,
+                    preview.fileName,
+                    preview.candidates.length,
+                    preview.candidates.at(0)?.fingerprint,
+                    preview.candidates.at(-1)?.fingerprint,
+                  ].join(':')}
+                  candidates={preview.candidates}
+                  skipped={preview.stats.skipped}
+                  saving={saving}
+                  onSave={saveTransactions}
+                />
+              )}
 
-              <AlertBanner
-                tone='info'
-                title='השלב הבא: חיבור לחשבונות ושמירה'
-                body='לאחר אישור מבנה מסד הנתונים נחבר כל מקור לחשבון המתאים, נבדוק כפילויות מול נתונים שמורים ונאפשר שמירה בטוחה.'
-              />
+              {commitState.status === 'error' && (
+                <AlertBanner
+                  tone='error'
+                  title='לא הצלחנו לשמור'
+                  body={commitState.message}
+                />
+              )}
+
+              {commitState.status === 'success' && (
+                <div className='flex flex-col gap-3'>
+                  <AlertBanner
+                    tone='success'
+                    title='הייבוא נשמר בהצלחה'
+                    body={`${commitState.insertedCount} תנועות נוספו, ${commitState.duplicateCount} כפילויות לא נוספו, ו־${commitState.skippedCount} שורות הושמטו בבטחה.`}
+                  />
+                  {commitState.reviewCount > 0 && (
+                    <AlertBanner
+                      tone='info'
+                      title={`${commitState.reviewCount} תנועות מחכות לקטגוריה`}
+                      body='התנועות כבר מופיעות במסך, וניתן לסנן אותן בלשונית "לבדיקה".'
+                    />
+                  )}
+                  <div className='flex justify-end'>
+                    <Button type='button' onClick={() => setOpen(false)}>
+                      סיום וצפייה בתנועות
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

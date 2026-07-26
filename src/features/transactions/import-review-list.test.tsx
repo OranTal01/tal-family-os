@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ImportCandidate } from '@/lib/imports/types';
 import { agorot } from '@/types/money';
 import { ImportReviewList } from './import-review-list';
@@ -50,37 +50,57 @@ const candidates: ImportCandidate[] = [
 describe('ImportReviewList', () => {
   it('requires per-row context and an income class before classification is complete', async () => {
     const user = userEvent.setup();
-    render(<ImportReviewList candidates={candidates} skipped={0} />);
+    const onSave = vi.fn();
+    render(
+      <ImportReviewList
+        candidates={candidates}
+        skipped={0}
+        onSave={onSave}
+      />,
+    );
 
-    expect(screen.getByText('0 מתוך 2 סווגו')).toBeInTheDocument();
+    expect(screen.getByText('0 תנועות מוכנות לשמירה')).toBeInTheDocument();
 
     const expenseRow = screen.getByText('צילום לעסק').closest('li');
     expect(expenseRow).not.toBeNull();
     await user.click(
       within(expenseRow!).getByRole('radio', { name: 'עסק' }),
     );
-    expect(screen.getByText('1 מתוך 2 סווגו')).toBeInTheDocument();
+    expect(screen.getByText('1 תנועות מוכנות לשמירה')).toBeInTheDocument();
 
     const incomeRow = screen.getByText('תשלום מלקוחה בביט').closest('li');
     expect(incomeRow).not.toBeNull();
     await user.click(
       within(incomeRow!).getByRole('radio', { name: 'עסק' }),
     );
-    expect(screen.getByText('1 מתוך 2 סווגו')).toBeInTheDocument();
+    expect(screen.getByText('1 תנועות מוכנות לשמירה')).toBeInTheDocument();
 
     await user.click(
       within(incomeRow!).getByLabelText('סיווג הכנסה'),
     );
     await user.click(
-      screen.getByRole('option', { name: 'הכנסה מהעסק' }),
+      await screen.findByRole('option', { name: 'הכנסה מהעסק' }),
     );
 
-    expect(screen.getByText('2 מתוך 2 סווגו')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'שמירת התנועות' }),
-    ).toBeDisabled();
-    expect(
-      screen.getByText(/עדיין לא נכתבו נתונים למסד הנתונים/),
-    ).toBeInTheDocument();
+    expect(screen.getByText('2 תנועות מוכנות לשמירה')).toBeInTheDocument();
+    const save = screen.getByRole('button', {
+      name: 'שמירת 2 תנועות',
+    });
+    expect(save).toBeEnabled();
+
+    await user.click(save);
+    expect(onSave).toHaveBeenCalledWith([
+      expect.objectContaining({
+        sourceRow: 10,
+        context: 'business',
+        kind: 'expense',
+      }),
+      expect.objectContaining({
+        sourceRow: 11,
+        context: 'business',
+        kind: 'income',
+        incomeClass: 'business',
+      }),
+    ]);
   });
 });

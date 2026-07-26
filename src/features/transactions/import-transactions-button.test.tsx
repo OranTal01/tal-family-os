@@ -4,7 +4,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { ImportTransactionsButton } from './import-transactions-button';
 
 vi.mock('@/app/(finance)/transactions/actions', () => ({
+  commitTransactionImportAction: vi.fn(),
   previewTransactionImportAction: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 describe('ImportTransactionsButton', () => {

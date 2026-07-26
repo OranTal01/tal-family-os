@@ -4,7 +4,10 @@ import {
   ImportWorkbookError,
   MAX_IMPORT_FILE_BYTES,
 } from '@/lib/imports/workbook';
-import { previewTransactionImportAction } from './actions';
+import {
+  commitTransactionImportAction,
+  previewTransactionImportAction,
+} from './actions';
 
 vi.mock('server-only', () => ({}));
 
@@ -12,11 +15,25 @@ const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   getCurrentHouseholdMembership: vi.fn(),
   parseTransactionWorkbook: vi.fn(),
+  createClient: vi.fn(),
+  from: vi.fn(),
+  rpc: vi.fn(),
+  peopleIs: vi.fn(),
+  peopleSingle: vi.fn(),
+  revalidatePath: vi.fn(),
 }));
 
 vi.mock('@/lib/supabase/dal', () => ({
   getCurrentUser: mocks.getCurrentUser,
   getCurrentHouseholdMembership: mocks.getCurrentHouseholdMembership,
+}));
+
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: mocks.createClient,
+}));
+
+vi.mock('next/cache', () => ({
+  revalidatePath: mocks.revalidatePath,
 }));
 
 vi.mock('@/lib/imports/workbook', async (importOriginal) => {
@@ -38,6 +55,22 @@ function fileFormData(
   return formData;
 }
 
+function commitFormData(
+  decisions: unknown = [
+    {
+      sourceRow: 3,
+      fingerprint: 'a'.repeat(64),
+      context: 'household',
+      kind: 'expense',
+      allowDuplicate: false,
+    },
+  ],
+) {
+  const formData = fileFormData();
+  formData.set('decisions', JSON.stringify(decisions));
+  return formData;
+}
+
 const preview = {
   fileName: 'transactions.xlsx',
   provider: 'cal' as const,
@@ -48,7 +81,7 @@ const preview = {
   candidates: [
     {
       id: 'candidate-1',
-      fingerprint: 'fingerprint-1',
+      fingerprint: 'a'.repeat(64),
       sourceRow: 3,
       account: {
         provider: 'cal' as const,
@@ -86,6 +119,47 @@ beforeEach(() => {
     role: 'owner',
   });
   mocks.parseTransactionWorkbook.mockResolvedValue(preview);
+  mocks.peopleIs.mockResolvedValue({
+    data: [
+      { id: 'person-oran', name: 'אורן' },
+      { id: 'person-danielle', name: 'דניאל' },
+    ],
+    error: null,
+  });
+  mocks.peopleSingle.mockResolvedValue({
+    data: { id: 'created-person', name: 'אורן' },
+    error: null,
+  });
+  mocks.from.mockImplementation((table: string) => {
+    if (table !== 'people') throw new Error(`Unexpected table: ${table}`);
+    return {
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          is: mocks.peopleIs,
+        })),
+      })),
+      insert: vi.fn(() => ({
+        select: vi.fn(() => ({
+          single: mocks.peopleSingle,
+        })),
+      })),
+    };
+  });
+  mocks.rpc.mockResolvedValue({
+    data: [
+      {
+        batch_id: 'batch-1',
+        inserted_count: 1,
+        duplicate_count: 0,
+        review_count: 1,
+      },
+    ],
+    error: null,
+  });
+  mocks.createClient.mockResolvedValue({
+    from: mocks.from,
+    rpc: mocks.rpc,
+  });
 });
 
 describe('previewTransactionImportAction', () => {
@@ -171,5 +245,99 @@ describe('previewTransactionImportAction', () => {
 
     expect(result.status).toBe('error');
     expect(mocks.parseTransactionWorkbook).not.toHaveBeenCalled();
+  });
+});
+
+describe('commitTransactionImportAction', () => {
+  it('reparses the trusted file and commits only the matching user choices', async () => {
+    const result = await commitTransactionImportAction(commitFormData());
+
+    expect(result).toEqual({
+      status: 'success',
+      message: '1 תנועות נשמרו בהצלחה.',
+      batchId: 'batch-1',
+      insertedCount: 1,
+      duplicateCount: 0,
+      reviewCount: 1,
+      skippedCount: 0,
+    });
+    expect(mocks.parseTransactionWorkbook).toHaveBeenCalledWith(
+      expect.any(Buffer),
+      'transactions.xlsx',
+    );
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      'commit_transaction_import',
+      expect.objectContaining({
+        p_household_id: 'household-1',
+        p_provider: 'cal',
+        p_parser_version: 'xlsx-v1',
+        p_file_sha256: expect.stringMatching(/^[0-9a-f]{64}$/),
+        p_rows: [
+          expect.objectContaining({
+            source_row: 3,
+            fingerprint: 'a'.repeat(64),
+            amount: -1_000,
+            context: 'household',
+            owner_person_id: 'person-oran',
+            kind: 'expense',
+          }),
+        ],
+      }),
+    );
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/transactions');
+  });
+
+  it('rejects a browser decision that does not match the reparsed workbook', async () => {
+    const result = await commitTransactionImportAction(
+      commitFormData([
+        {
+          sourceRow: 3,
+          fingerprint: 'b'.repeat(64),
+          context: 'household',
+          kind: 'expense',
+          allowDuplicate: false,
+        },
+      ]),
+    );
+
+    expect(result).toEqual({
+      status: 'error',
+      message: 'חסר סיווג לאחת התנועות. יש לבדוק את הרשימה ולנסות שוב.',
+    });
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it('blocks read-only household viewers before parsing the file', async () => {
+    mocks.getCurrentHouseholdMembership.mockResolvedValue({
+      householdId: 'household-1',
+      role: 'viewer',
+    });
+
+    const result = await commitTransactionImportAction(commitFormData());
+
+    expect(result).toEqual({
+      status: 'error',
+      message: 'אין לחשבון הזה הרשאה לשמור תנועות במשק הבית.',
+    });
+    expect(mocks.parseTransactionWorkbook).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it('explains an already-imported source file without exposing database details', async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: {
+        code: 'P0001',
+        message: 'this source file already has an active import',
+      },
+    });
+
+    const result = await commitTransactionImportAction(commitFormData());
+
+    expect(result).toEqual({
+      status: 'error',
+      message:
+        'הקובץ הזה כבר נשמר בעבר. אפשר לראות את התנועות שלו במסך התנועות.',
+    });
   });
 });

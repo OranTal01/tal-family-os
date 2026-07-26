@@ -741,6 +741,210 @@ export type Database = {
           },
         ]
       }
+      import_account_mappings: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          created_at: string
+          created_by: string
+          financial_account_id: string
+          household_id: string
+          id: string
+          masked_last4: string
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          created_at?: string
+          created_by: string
+          financial_account_id: string
+          household_id: string
+          id?: string
+          masked_last4: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          created_at?: string
+          created_by?: string
+          financial_account_id?: string
+          household_id?: string
+          id?: string
+          masked_last4?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_account_mappings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_account_mappings_financial_account_id_household_id_fkey"
+            columns: ["financial_account_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "import_account_mappings_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_batches: {
+        Row: {
+          created_at: string
+          created_by: string
+          detected_count: number
+          display_file_name: string
+          duplicate_count: number
+          file_sha256: string
+          household_id: string
+          id: string
+          inserted_count: number
+          parser_version: string
+          provider: string
+          review_count: number
+          rolled_back_at: string | null
+          rolled_back_by: string | null
+          skipped_count: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          detected_count: number
+          display_file_name: string
+          duplicate_count?: number
+          file_sha256: string
+          household_id: string
+          id?: string
+          inserted_count?: number
+          parser_version: string
+          provider: string
+          review_count?: number
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          skipped_count?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          detected_count?: number
+          display_file_name?: string
+          duplicate_count?: number
+          file_sha256?: string
+          household_id?: string
+          id?: string
+          inserted_count?: number
+          parser_version?: string
+          provider?: string
+          review_count?: number
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          skipped_count?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_batches_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_batches_rolled_back_by_fkey"
+            columns: ["rolled_back_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_rows: {
+        Row: {
+          batch_id: string
+          committed_snapshot: Json | null
+          created_at: string
+          duplicate_of_transaction_id: string | null
+          fingerprint: string
+          household_id: string
+          id: string
+          provider_reference: string | null
+          rolled_back_at: string | null
+          source_row: number
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          batch_id: string
+          committed_snapshot?: Json | null
+          created_at?: string
+          duplicate_of_transaction_id?: string | null
+          fingerprint: string
+          household_id: string
+          id?: string
+          provider_reference?: string | null
+          rolled_back_at?: string | null
+          source_row: number
+          status: string
+          transaction_id?: string | null
+        }
+        Update: {
+          batch_id?: string
+          committed_snapshot?: Json | null
+          created_at?: string
+          duplicate_of_transaction_id?: string | null
+          fingerprint?: string
+          household_id?: string
+          id?: string
+          provider_reference?: string | null
+          rolled_back_at?: string | null
+          source_row?: number
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_rows_batch_id_household_id_fkey"
+            columns: ["batch_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "import_rows_duplicate_of_transaction_id_household_id_fkey"
+            columns: ["duplicate_of_transaction_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "import_rows_transaction_id_household_id_fkey"
+            columns: ["transaction_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
       income_sources: {
         Row: {
           active: boolean
@@ -1489,6 +1693,7 @@ export type Database = {
         Row: {
           account_id: string
           amount: number
+          archived_at: string | null
           category_id: string | null
           context: Database["public"]["Enums"]["finance_context"]
           created_at: string
@@ -1515,6 +1720,7 @@ export type Database = {
         Insert: {
           account_id: string
           amount: number
+          archived_at?: string | null
           category_id?: string | null
           context?: Database["public"]["Enums"]["finance_context"]
           created_at?: string
@@ -1541,6 +1747,7 @@ export type Database = {
         Update: {
           account_id?: string
           amount?: number
+          archived_at?: string | null
           category_id?: string | null
           context?: Database["public"]["Enums"]["finance_context"]
           created_at?: string
@@ -1625,6 +1832,23 @@ export type Database = {
         Args: { p_invitation_id: string }
         Returns: string
       }
+      commit_transaction_import: {
+        Args: {
+          p_display_file_name: string
+          p_file_sha256: string
+          p_household_id: string
+          p_parser_version: string
+          p_provider: string
+          p_rows: Json
+          p_skipped_count?: number
+        }
+        Returns: {
+          batch_id: string
+          duplicate_count: number
+          inserted_count: number
+          review_count: number
+        }[]
+      }
       create_household: { Args: { p_name: string }; Returns: string }
       create_household_invitation: {
         Args: {
@@ -1662,6 +1886,13 @@ export type Database = {
       revoke_household_invitation: {
         Args: { p_invitation_id: string }
         Returns: string
+      }
+      rollback_transaction_import: {
+        Args: { p_batch_id: string }
+        Returns: {
+          archived_count: number
+          conflict_count: number
+        }[]
       }
     }
     Enums: {
