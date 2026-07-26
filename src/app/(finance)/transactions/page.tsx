@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { PageContainer, PageHeader } from '@/components/shell/page-container';
+import { ImportTransactionsButton } from '@/features/transactions/import-transactions-button';
 import { TransactionsView } from '@/features/transactions/transactions-view';
 import { getTransactionsScreen } from '@/server/data/views';
 
@@ -15,7 +16,7 @@ export default async function TransactionsPage({
 
   return (
     <PageContainer>
-      <PageHeader title='תנועות' />
+      <PageHeader title='תנועות' actions={<ImportTransactionsButton />} />
       <TransactionsView
         items={data.items}
         categories={data.categories}

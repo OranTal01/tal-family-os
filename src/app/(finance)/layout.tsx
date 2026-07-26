@@ -1,8 +1,16 @@
 import { redirect } from 'next/navigation';
 import { AppShell } from '@/components/shell/app-shell';
 import { ProfileSetupError } from '@/components/auth/profile-setup-error';
+import { HouseholdSetup } from '@/components/onboarding/household-setup';
+import { HouseholdInvitation } from '@/components/onboarding/household-invitation';
+import { HouseholdSetupError } from '@/components/onboarding/household-setup-error';
 import { getShellData } from '@/server/data/shell';
-import { getCurrentProfile, getCurrentUser } from '@/lib/supabase/dal';
+import {
+  getCurrentHouseholdMembership,
+  getPendingHouseholdInvitation,
+  getCurrentProfile,
+  getCurrentUser,
+} from '@/lib/supabase/dal';
 import { authRoutes } from '@/lib/routes';
 
 export default async function FinanceLayout({
@@ -18,6 +26,33 @@ export default async function FinanceLayout({
 
   const profile = await getCurrentProfile();
   if (!profile) return <ProfileSetupError />;
+
+  let membership;
+  try {
+    membership = await getCurrentHouseholdMembership();
+  } catch {
+    return <HouseholdSetupError />;
+  }
+
+  if (!membership) {
+    let invitation;
+    try {
+      invitation = await getPendingHouseholdInvitation();
+    } catch {
+      return <HouseholdSetupError />;
+    }
+
+    if (invitation) {
+      return (
+        <HouseholdInvitation
+          invitation={invitation}
+          displayName={profile.display_name}
+        />
+      );
+    }
+
+    return <HouseholdSetup displayName={profile.display_name} />;
+  }
 
   const { reviewCount, syncedAgo } = await getShellData();
   return (

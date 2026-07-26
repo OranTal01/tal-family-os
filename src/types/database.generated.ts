@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       assets: {
@@ -596,6 +591,70 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "financial_accounts"
             referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
+      household_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          household_id: string
+          id: string
+          invited_by: string
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["member_role"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          household_id: string
+          id?: string
+          invited_by: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          household_id?: string
+          id?: string
+          invited_by?: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_invitations_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_invitations_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1562,7 +1621,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_household_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: string
+      }
       create_household: { Args: { p_name: string }; Returns: string }
+      create_household_invitation: {
+        Args: {
+          p_email: string
+          p_role?: Database["public"]["Enums"]["member_role"]
+        }
+        Returns: string
+      }
       create_internal_transfer: {
         Args: {
           p_amount: number
@@ -1574,9 +1644,24 @@ export type Database = {
         }
         Returns: string
       }
+      get_pending_household_invitation: {
+        Args: never
+        Returns: {
+          expires_at: string
+          household_name: string
+          invitation_id: string
+          invited_role: Database["public"]["Enums"]["member_role"]
+          inviter_name: string
+          is_expired: boolean
+        }[]
+      }
       remove_internal_transfer: {
         Args: { p_transfer_id: string }
         Returns: undefined
+      }
+      revoke_household_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: string
       }
     }
     Enums: {

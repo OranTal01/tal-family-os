@@ -3,27 +3,40 @@ import { PageContainer, PageHeader } from '@/components/shell/page-container';
 import { SectionCard } from '@/components/finance/section-card';
 import { Icon } from '@/components/ui/icon';
 import { InviteButton } from '@/features/settings/invite-button';
+import { PendingInvitations } from '@/features/settings/pending-invitations';
 import { Preferences } from '@/features/settings/preferences';
 import { SignOutButton } from '@/components/auth/sign-out-button';
 import { getSettingsScreen } from '@/server/data/views';
-import { getCurrentUser } from '@/lib/supabase/dal';
+import {
+  getCurrentHouseholdInvitations,
+  getCurrentHouseholdMembership,
+  getCurrentHouseholdPeople,
+  getCurrentUser,
+} from '@/lib/supabase/dal';
 
 export const metadata: Metadata = { title: 'הגדרות' };
 
 export default async function SettingsPage() {
-  const [{ members, rules }, user] = await Promise.all([
+  const [{ rules }, user, membership, members, invitations] = await Promise.all([
     getSettingsScreen(),
     getCurrentUser(),
+    getCurrentHouseholdMembership(),
+    getCurrentHouseholdPeople(),
+    getCurrentHouseholdInvitations(),
   ]);
   const adults = members.filter((m) => m.kind === 'adult');
   const children = members.filter((m) => m.kind === 'child');
+  const isOwner = membership?.role === 'owner';
 
   return (
     <PageContainer className='max-w-[980px]'>
       <PageHeader title='הגדרות' />
 
       <div className='grid gap-4 lg:grid-cols-2'>
-        <SectionCard title='בני משק הבית' action={<InviteButton />}>
+        <SectionCard
+          title='בני משק הבית'
+          action={isOwner ? <InviteButton /> : undefined}
+        >
           <ul className='flex flex-col divide-y divide-line'>
             {adults.map((m) => (
               <li key={m.id} className='flex items-center gap-3 py-3'>
@@ -59,6 +72,7 @@ export default async function SettingsPage() {
               </li>
             )}
           </ul>
+          {isOwner && <PendingInvitations invitations={invitations} />}
         </SectionCard>
 
         <SectionCard title='העדפות'>

@@ -3,8 +3,10 @@
 Private family operating system for the Tal family. First active module: **Finance** —
 a calm, Hebrew-first, RTL-first family finance dashboard ("Financial Calm" design).
 
-> Private software for one household. Mock data only in this phase — no real bank
-> connections, no external services.
+> Private software for one household. Authentication and household membership are live;
+> Finance screens remain mock-backed. Real provider XLSX files can be parsed into a
+> non-persistent review with context, transaction-kind, and income-class controls, but
+> are not saved yet.
 
 ## Getting started
 
@@ -28,9 +30,10 @@ All four checks (lint, typecheck, test, build) must pass before work is consider
 
 ## Stack
 
-Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4 ·
+Next.js 16.2.12 (App Router) · React 19 · TypeScript strict · Tailwind CSS v4 ·
 shadcn/ui v4 (base-nova / @base-ui/react) · next-themes · Assistant font ·
-Material Symbols Rounded · zod · date-fns · Vitest + Testing Library.
+Material Symbols Rounded · Supabase · read-excel-file/fflate · zod · date-fns ·
+Vitest + Testing Library.
 
 ## Documentation
 
@@ -52,5 +55,5 @@ Material Symbols Rounded · zod · date-fns · Vitest + Testing Library.
 
 ## Environment
 
-No environment variables are required in the mock-data phase. `.env.example` documents
-the variables the future Supabase phase will introduce. Never commit secrets.
+Authenticated routes require the Supabase publishable URL and key documented in
+`.env.example`. Never commit secrets, service-role keys, or raw financial exports.

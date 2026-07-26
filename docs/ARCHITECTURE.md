@@ -2,7 +2,7 @@
 
 ## Stack (verified against the repo — inspect `package.json`, don't assume)
 
-- **Next.js 16.2.10**, App Router. ⚠️ This version differs from most training data —
+- **Next.js 16.2.12**, App Router. ⚠️ This version differs from most training data —
   consult `node_modules/next/dist/docs/` before using unfamiliar APIs. Known: `params` /
   `searchParams` are **Promises** (`await params`), `proxy.ts` replaces middleware,
   standard `page/layout/loading/error` conventions apply.
@@ -16,6 +16,10 @@
   `src/components/ui/icon.tsx` (`aria-hidden` by default).
 - **zod** (form/external validation), **date-fns** (date math; `Intl`/hand-rolled Hebrew
   labels for display), **Vitest + Testing Library** (jsdom).
+- **Supabase** for private authentication, profiles, household membership, and the
+  future Finance repository adapters. Finance screens are still mock-backed.
+- **read-excel-file + fflate** on the server only for bounded CAL, Isracard, and FIBI
+  XLSX import previews.
 
 ### Deliberately deferred (do not add without need)
 
@@ -25,8 +29,8 @@
   rings/progress bars; hand-rolled accessible SVG is smaller and matches the design exactly.
 - **Playwright** — planned for the Supabase phase; current quality gate is unit +
   component tests + lint + typecheck + build.
-- **Supabase client** — architecture is Supabase-*ready* (see DATA_MODEL.md and the
-  repository interfaces); no client installed until real persistence begins.
+- **Open Banking provider** — direct provider selection and paid integration are
+  deferred until the import persistence contract is complete.
 
 ## Folder structure
 
@@ -48,6 +52,7 @@ src/
   lib/
     finance/              # PURE calculation engine — no I/O, no React
     format/               # currency/date/number formatting (single source)
+    imports/              # bounded XLSX compatibility, profiles, candidates, fingerprints
     routes.ts             # route map + nav registry (labels, icons, badges)
     utils.ts              # cn()
   server/data/            # repository interfaces + mock implementation
@@ -101,14 +106,20 @@ The `/daily` screen renders it. Delivery scheduling (21:30 Asia/Jerusalem) is sp
 an interface (`NotificationScheduler`) with a no-op implementation; a real provider (e.g.
 Supabase cron + push) plugs in later. No paid provider is assumed.
 
-## Security posture (mock phase, but no insecure normalization)
+## Security posture
 
 - No secrets in the repo; `.env.example` documents future variables.
 - Server-only code stays out of client bundles (`server/` modules; no secret exposure).
 - Never store bank passwords/CVV; never log raw financial payloads.
-- Supabase later: RLS on `household_id` for every table (see DATA_MODEL.md), storage
-  upload sanitization, zod validation at every external boundary, error messages free of
-  sensitive data.
+- Supabase Finance persistence remains behind RLS on `household_id`; the import preview
+  authenticates membership but writes no rows or files.
+- XLSX preview uses extension/MIME/magic checks, a 1.5 MB file cap, bounded XML archive
+  expansion, bounded sheets/rows/columns, source detection, and sensitive-data-free
+  errors/logs.
+- Import review choices are client-local and non-persistent. Danielle card rows and
+  incoming shared-FIBI credits require explicit context; income additionally requires an
+  income class. Bit and bank transfer are treated as channels rather than trusted
+  context signals.
 
 ## Validation commands
 
