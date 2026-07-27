@@ -18,6 +18,12 @@ const categories = [
     icon: 'devices',
     context: 'business' as const,
   },
+  {
+    id: '10000000-0000-4000-8000-000000000003',
+    name: 'שיווק ופרסום',
+    icon: 'campaign',
+    context: 'business' as const,
+  },
 ];
 
 const candidates: ImportCandidate[] = [
@@ -90,8 +96,22 @@ describe('ImportReviewList', () => {
     );
     expect(screen.getByText('0 תנועות מוכנות לשמירה')).toBeInTheDocument();
     await user.click(within(expenseRow!).getByLabelText('קטגוריה'));
+    const categorySearch = await screen.findByRole('combobox', {
+      name: 'חיפוש קטגוריה',
+    });
+    expect(
+      screen.getByRole('option', { name: 'שיווק ופרסום' }),
+    ).toBeInTheDocument();
+    await user.type(categorySearch, 'ציוד');
+    expect(
+      screen.queryByRole('option', { name: 'שיווק ופרסום' }),
+    ).not.toBeInTheDocument();
+    const equipmentOption = await screen.findByRole('option', {
+      name: 'ציוד וטכנולוגיה',
+    });
+    expect(equipmentOption).toHaveClass('justify-center', 'text-center');
     await user.click(
-      await screen.findByRole('option', { name: 'ציוד וטכנולוגיה' }),
+      equipmentOption,
     );
     expect(within(expenseRow!).getByLabelText('קטגוריה')).toHaveTextContent(
       'ציוד וטכנולוגיה',

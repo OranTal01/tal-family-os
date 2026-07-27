@@ -1,6 +1,7 @@
 'use client';
 
 import type { CategoryOption } from '@/server/data/views';
+import { CategoryCombobox } from '@/components/finance/category-combobox';
 import { Icon } from '@/components/ui/icon';
 import { Label } from '@/components/ui/label';
 import {
@@ -51,25 +52,15 @@ export function ClassificationFields({
     <div className='flex flex-col gap-4'>
       <div className='flex flex-col gap-1.5'>
         <Label htmlFor={`${idPrefix}-category`}>קטגוריה</Label>
-        <Select
+        <CategoryCombobox
+          id={`${idPrefix}-category`}
           value={value.categoryId ?? ''}
-          onValueChange={(v) => onChange({ ...value, categoryId: v || undefined })}
+          options={contextCategories}
+          onValueChange={(categoryId) =>
+            onChange({ ...value, categoryId })
+          }
           disabled={value.isTransfer}
-        >
-          <SelectTrigger id={`${idPrefix}-category`} className='w-full'>
-            <SelectValue placeholder='בחירת קטגוריה' />
-          </SelectTrigger>
-          <SelectContent>
-            {contextCategories.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                <span className='flex items-center gap-2'>
-                  <Icon name={c.icon} className='text-[16px] text-mut' />
-                  {c.name}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        />
       </div>
 
       <fieldset className='flex flex-col gap-1.5'>

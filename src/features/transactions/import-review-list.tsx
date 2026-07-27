@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { CategoryCombobox } from '@/components/finance/category-combobox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -132,9 +133,6 @@ function ImportReviewRow({
     incomeClassOptions.find(
       (option) => option.value === choice.incomeClass,
     )?.label ?? 'בחירת סוג הכנסה';
-  const selectedCategoryName = availableCategories.find(
-    (category) => category.id === choice.categoryId,
-  )?.name;
   const needsCategory =
     choice.kind === 'expense' || choice.kind === 'refund';
 
@@ -323,42 +321,25 @@ function ImportReviewRow({
                 </Badge>
               )}
             </div>
-            <Select
+            <CategoryCombobox
+              id={`${idPrefix}-category`}
               value={choice.categoryId ?? ''}
               disabled={pending || !choice.context}
+              options={availableCategories}
+              placeholder={
+                choice.context
+                  ? 'בחירת קטגוריה'
+                  : 'קודם בוחרים משק בית או עסק'
+              }
               onValueChange={(categoryId) =>
                 onChange({
                   ...choice,
-                  categoryId: categoryId ?? undefined,
+                  categoryId,
                   categorySuggestionSource: undefined,
                   rememberRule: Boolean(categoryId),
                 })
               }
-            >
-              <SelectTrigger
-                id={`${idPrefix}-category`}
-                className='w-full'
-              >
-                <SelectValue>
-                  {selectedCategoryName ??
-                    (choice.context
-                      ? 'בחירת קטגוריה'
-                      : 'קודם בוחרים משק בית או עסק')}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent
-                align='start'
-                alignItemWithTrigger={false}
-                showScrollButtons={false}
-                className='max-h-72 overscroll-contain scroll-smooth'
-              >
-                {availableCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            />
           </div>
         ) : (
           <div
