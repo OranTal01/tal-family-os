@@ -5,8 +5,9 @@ import { Icon } from '@/components/ui/icon';
 import { InviteButton } from '@/features/settings/invite-button';
 import { PendingInvitations } from '@/features/settings/pending-invitations';
 import { Preferences } from '@/features/settings/preferences';
+import { CategoryManager } from '@/features/settings/category-manager';
 import { SignOutButton } from '@/components/auth/sign-out-button';
-import { getSettingsScreen } from '@/server/data/views';
+import { getPersistedSettingsScreen } from '@/server/data/persisted-settings';
 import {
   getCurrentHouseholdInvitations,
   getCurrentHouseholdMembership,
@@ -17,8 +18,14 @@ import {
 export const metadata: Metadata = { title: 'הגדרות' };
 
 export default async function SettingsPage() {
-  const [{ rules }, user, membership, members, invitations] = await Promise.all([
-    getSettingsScreen(),
+  const [
+    { categories, rules },
+    user,
+    membership,
+    members,
+    invitations,
+  ] = await Promise.all([
+    getPersistedSettingsScreen(),
     getCurrentUser(),
     getCurrentHouseholdMembership(),
     getCurrentHouseholdPeople(),
@@ -86,6 +93,10 @@ export default async function SettingsPage() {
             </span>
             <SignOutButton />
           </div>
+        </SectionCard>
+
+        <SectionCard title='קטגוריות' className='lg:col-span-2'>
+          <CategoryManager categories={categories} canEdit={isOwner} />
         </SectionCard>
 
         <SectionCard

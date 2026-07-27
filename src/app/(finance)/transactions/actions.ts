@@ -176,7 +176,7 @@ async function addImportCategorySuggestions(
   const [categoriesResult, rulesResult] = await Promise.all([
     supabase
       .from('categories')
-      .select('id, name, context')
+      .select('id, name, icon, context')
       .eq('household_id', householdId)
       .is('archived_at', null),
     supabase

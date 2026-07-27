@@ -79,6 +79,12 @@ describe('ImportReviewList', () => {
 
     const expenseRow = screen.getByText('צילום לעסק').closest('li');
     expect(expenseRow).not.toBeNull();
+    expect(within(expenseRow!).getByLabelText('סוג תנועה')).toHaveTextContent(
+      'הוצאה',
+    );
+    expect(
+      within(expenseRow!).getByLabelText('סוג תנועה'),
+    ).not.toHaveTextContent('expense');
     await user.click(
       within(expenseRow!).getByRole('radio', { name: 'עסק' }),
     );
@@ -87,6 +93,12 @@ describe('ImportReviewList', () => {
     await user.click(
       await screen.findByRole('option', { name: 'ציוד וטכנולוגיה' }),
     );
+    expect(within(expenseRow!).getByLabelText('קטגוריה')).toHaveTextContent(
+      'ציוד וטכנולוגיה',
+    );
+    expect(
+      within(expenseRow!).getByLabelText('קטגוריה'),
+    ).not.toHaveTextContent(categories[1].id);
     expect(screen.getByText('1 תנועות מוכנות לשמירה')).toBeInTheDocument();
     expect(
       within(expenseRow!).getByRole('switch', {

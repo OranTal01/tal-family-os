@@ -18,6 +18,16 @@ const categories = [
     name: 'פרסום ושיווק',
     context: 'business' as const,
   },
+  {
+    id: '10000000-0000-4000-8000-000000000003',
+    name: 'תספורות וטיפוח',
+    context: 'household' as const,
+  },
+  {
+    id: '10000000-0000-4000-8000-000000000004',
+    name: 'רכב ותחזוקה',
+    context: 'household' as const,
+  },
 ];
 
 const candidate: ImportCandidate = {
@@ -82,5 +92,34 @@ describe('import categorization', () => {
     expect(
       suggestSmartCategory('META ADS 123', 'business', categories),
     ).toEqual(categories[1]);
+  });
+
+  it('uses the real workbook merchant patterns for new household categories', () => {
+    expect(
+      suggestSmartCategory('מנטור ברבר שופ', 'household', categories),
+    ).toEqual(categories[2]);
+    expect(
+      suggestSmartCategory('מוסך אוטו טוב', 'household', categories),
+    ).toEqual(categories[3]);
+  });
+
+  it('keeps smart matching after a category is renamed', () => {
+    const renamedCategories = categories.map((category) =>
+      category.id === categories[2].id
+        ? {
+            ...category,
+            name: 'טיפוח אישי',
+            icon: 'content_cut',
+          }
+        : category,
+    );
+
+    expect(
+      suggestSmartCategory(
+        'מנטור ברבר שופ',
+        'household',
+        renamedCategories,
+      ),
+    ).toEqual(renamedCategories[2]);
   });
 });

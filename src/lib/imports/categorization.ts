@@ -7,6 +7,7 @@ import type {
 export type ImportCategory = {
   id: string;
   name: string;
+  icon?: string;
   context: Context;
 };
 
@@ -27,6 +28,32 @@ type SmartRule = {
   terms: string[];
 };
 
+const categoryIcons: Record<string, string> = {
+  'דיור ומשכנתא': 'home',
+  'סופר וקניות': 'shopping_cart',
+  'מסעדות ומשלוחים': 'restaurant',
+  חשמל: 'bolt',
+  'אינטרנט וסלולר': 'wifi',
+  ביגוד: 'checkroom',
+  'תחבורה וחניה': 'directions_car',
+  'רכב ותחזוקה': 'car_repair',
+  ביטוחים: 'shield',
+  'בריאות ופארם': 'medication',
+  'תספורות וטיפוח': 'content_cut',
+  קוסמטיקה: 'spa',
+  'ספורט וכושר': 'fitness_center',
+  'חיות מחמד': 'pets',
+  'מנויים דיגיטליים': 'subscriptions',
+  בילויים: 'celebration',
+  'חופשות ופנאי': 'travel',
+  'עמלות ומסים': 'receipt_long',
+  'פרסום ושיווק': 'campaign',
+  'ציוד וטכנולוגיה': 'devices',
+  'שירותים מקצועיים': 'work',
+  'נסיעות ופגישות': 'commute',
+  'עמלות ומסים לעסק': 'request_quote',
+};
+
 const smartRules: Record<Context, SmartRule[]> = {
   household: [
     {
@@ -43,6 +70,9 @@ const smartRules: Record<Context, SmartRule[]> = {
         'יוחננוף',
         'אושר עד',
         'מחסני השוק',
+        'סיטי מרקט',
+        'סטופמרקט',
+        'מחסן הסיטונאי',
       ],
     },
     {
@@ -55,6 +85,11 @@ const smartRules: Record<Context, SmartRule[]> = {
         'ארומה',
         'קפה גרג',
         'מסעדה',
+        'פיצה',
+        'פלאפל',
+        'רולדין',
+        'לנדוור',
+        'מקדונלדס',
       ],
     },
     {
@@ -84,10 +119,27 @@ const smartRules: Record<Context, SmartRule[]> = {
         'פנגו',
         'gett',
         'yango',
+        'lime',
         'דלק',
+        'yellow',
+        'ילו',
         'סונול',
         'פז',
         'דור אלון',
+        'דן חברה לתחבורה',
+        'חניה',
+        'סנטרל פארק',
+      ],
+    },
+    {
+      categoryName: 'רכב ותחזוקה',
+      terms: [
+        'מוסך',
+        'פחחות',
+        'מכון רישוי',
+        'רשיונות רכב',
+        'רישיונות רכב',
+        'car repair',
       ],
     },
     {
@@ -113,6 +165,32 @@ const smartRules: Record<Context, SmartRule[]> = {
       ],
     },
     {
+      categoryName: 'תספורות וטיפוח',
+      terms: ['ברבר', 'barber', 'מספרה', 'תספורת'],
+    },
+    {
+      categoryName: 'קוסמטיקה',
+      terms: ['קוסמטיקה', 'קוסמטיקאית', 'beauty', 'sephora'],
+    },
+    {
+      categoryName: 'ספורט וכושר',
+      terms: ['חדר כושר', 'fitness', 'gym', 'אייקון', 'הולמס פלייס'],
+    },
+    {
+      categoryName: 'חיות מחמד',
+      terms: ['וטרינר', 'מרפאט', 'pet', 'animal'],
+    },
+    {
+      categoryName: 'מנויים דיגיטליים',
+      terms: [
+        'netflix',
+        'disney plus',
+        'playstation',
+        'next tv',
+        'spotify',
+      ],
+    },
+    {
       categoryName: 'בילויים',
       terms: ['קולנוע', 'cinema', 'יס פלאנט', 'סינמה סיטי'],
     },
@@ -135,6 +213,7 @@ const smartRules: Record<Context, SmartRule[]> = {
         'google ads',
         'tiktok',
         'פרסום',
+        'manychat',
       ],
     },
     {
@@ -147,6 +226,8 @@ const smartRules: Record<Context, SmartRule[]> = {
         'canva',
         'zoom',
         'dropbox',
+        'anthropic',
+        'claude',
       ],
     },
     {
@@ -181,7 +262,9 @@ export function suggestSmartCategory(
 
   return categories.find(
     (category) =>
-      category.context === context && category.name === rule.categoryName,
+      category.context === context &&
+      (category.name === rule.categoryName ||
+        category.icon === categoryIcons[rule.categoryName]),
   );
 }
 

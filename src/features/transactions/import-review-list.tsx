@@ -125,6 +125,16 @@ function ImportReviewRow({
   const availableCategories = categories.filter(
     (category) => category.context === choice.context,
   );
+  const selectedKindLabel =
+    kindOptions.find((option) => option.value === choice.kind)?.label ??
+    'בחירת סוג תנועה';
+  const selectedIncomeClassLabel =
+    incomeClassOptions.find(
+      (option) => option.value === choice.incomeClass,
+    )?.label ?? 'בחירת סוג הכנסה';
+  const selectedCategoryName = availableCategories.find(
+    (category) => category.id === choice.categoryId,
+  )?.name;
   const needsCategory =
     choice.kind === 'expense' || choice.kind === 'refund';
 
@@ -157,35 +167,33 @@ function ImportReviewRow({
 
   return (
     <li className='py-4'>
-      <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
-        <div className='min-w-0 flex-1'>
-          <div className='flex flex-wrap items-center gap-1.5'>
-            <span className='truncate text-body font-bold text-ink'>
-              {candidate.merchant}
-            </span>
-            {candidate.reviewReasons.map((reason) => (
-              <Badge key={reason} variant='secondary'>
-                {reviewLabels[reason]}
-              </Badge>
-            ))}
-          </div>
-          <p className='mt-1 text-caption font-semibold text-mut'>
-            <span dir='ltr'>{candidate.dateISO}</span>
-            {' · '}
-            {candidate.account.last4
-              ? `••${candidate.account.last4}`
-              : 'חשבון לזיהוי'}
-            {candidate.transactionType
-              ? ` · ${candidate.transactionType}`
-              : ''}
-          </p>
+      <div className='min-w-0'>
+        <div className='flex flex-wrap items-center gap-1.5'>
+          <span className='truncate text-body font-bold text-ink'>
+            {candidate.merchant}
+          </span>
+          {candidate.reviewReasons.map((reason) => (
+            <Badge key={reason} variant='secondary'>
+              {reviewLabels[reason]}
+            </Badge>
+          ))}
         </div>
         <span
           dir='ltr'
-          className='shrink-0 text-body font-extrabold tabular-nums text-ink'
+          className='mt-1 inline-block text-body font-extrabold tabular-nums text-ink'
         >
           {formatCandidateAmount(candidate.amount, candidate.currency)}
         </span>
+        <p className='mt-1 text-caption font-semibold text-mut'>
+          <span dir='ltr'>{candidate.dateISO}</span>
+          {' · '}
+          {candidate.account.last4
+            ? `••${candidate.account.last4}`
+            : 'חשבון לזיהוי'}
+          {candidate.transactionType
+            ? ` · ${candidate.transactionType}`
+            : ''}
+        </p>
       </div>
 
       <div className='mt-3 grid gap-3 rounded-lg bg-surface-2 p-3 sm:grid-cols-2 lg:grid-cols-3'>
@@ -256,7 +264,7 @@ function ImportReviewRow({
             }
           >
             <SelectTrigger id={`${idPrefix}-kind`} className='w-full'>
-              <SelectValue />
+              <SelectValue>{selectedKindLabel}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {availableKindOptions.map((option) => (
@@ -285,7 +293,7 @@ function ImportReviewRow({
                 id={`${idPrefix}-income-class`}
                 className='w-full'
               >
-                <SelectValue placeholder='בחירת סוג הכנסה' />
+                <SelectValue>{selectedIncomeClassLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {incomeClassOptions.map((option) => (
@@ -324,15 +332,19 @@ function ImportReviewRow({
                 id={`${idPrefix}-category`}
                 className='w-full'
               >
-                <SelectValue
-                  placeholder={
-                    choice.context
+                <SelectValue>
+                  {selectedCategoryName ??
+                    (choice.context
                       ? 'בחירת קטגוריה'
-                      : 'קודם בוחרים משק בית או עסק'
-                  }
-                />
+                      : 'קודם בוחרים משק בית או עסק')}
+                </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                align='start'
+                alignItemWithTrigger={false}
+                showScrollButtons={false}
+                className='max-h-72 overscroll-contain scroll-smooth'
+              >
                 {availableCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
