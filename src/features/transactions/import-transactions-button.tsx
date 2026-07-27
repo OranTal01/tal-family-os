@@ -202,6 +202,14 @@ export function ImportTransactionsButton({
                   categories={categories}
                   skipped={preview.stats.skipped}
                   saving={saving}
+                  saveError={
+                    commitState.status === 'error'
+                      ? commitState
+                      : undefined
+                  }
+                  onReviewChange={() =>
+                    setCommitState(initialImportCommitActionState)
+                  }
                   onSave={saveTransactions}
                 />
               )}

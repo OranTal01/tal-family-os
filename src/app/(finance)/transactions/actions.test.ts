@@ -369,6 +369,43 @@ describe('commitTransactionImportAction', () => {
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/transactions');
   });
 
+  it('commits a categorized pending card transaction with its pending status', async () => {
+    mocks.parseTransactionWorkbook.mockResolvedValue({
+      ...preview,
+      candidates: [
+        {
+          ...preview.candidates[0],
+          status: 'pending',
+          reviewReasons: ['pending'],
+          eligible: false,
+        },
+      ],
+      stats: {
+        ...preview.stats,
+        eligible: 0,
+        needsReview: 1,
+        pending: 1,
+      },
+    });
+
+    const result = await commitTransactionImportAction(commitFormData());
+
+    expect(result.status).toBe('success');
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      'commit_categorized_transaction_import',
+      expect.objectContaining({
+        p_rows: [
+          expect.objectContaining({
+            source_row: 3,
+            status: 'pending',
+            category_id: '10000000-0000-4000-8000-000000000001',
+          }),
+        ],
+        p_skipped_count: 0,
+      }),
+    );
+  });
+
   it('rejects a browser decision that does not match the reparsed workbook', async () => {
     const result = await commitTransactionImportAction(
       commitFormData([
@@ -386,7 +423,9 @@ describe('commitTransactionImportAction', () => {
 
     expect(result).toEqual({
       status: 'error',
-      message: 'חסר סיווג לאחת התנועות. יש לבדוק את הרשימה ולנסות שוב.',
+      message:
+        'חסר סיווג עבור חנות לדוגמה (שורה 3 בקובץ).',
+      sourceRow: 3,
     });
     expect(mocks.rpc).not.toHaveBeenCalled();
   });

@@ -37,11 +37,21 @@ export function TransactionsView({
   initialTab?: Tab;
 }) {
   const [items, setItems] = React.useState(initialItems);
+  const [previousInitialItems, setPreviousInitialItems] =
+    React.useState(initialItems);
   const [tab, setTab] = React.useState<Tab>(initialTab);
   const [query, setQuery] = React.useState('');
   const [categoryFilter, setCategoryFilter] = React.useState<string | null>(null);
   const [limit, setLimit] = React.useState(PAGE_SIZE);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+
+  // router.refresh() preserves Client Component state. Reset only the
+  // server-backed transaction list when a fresh RSC payload arrives, while
+  // keeping the user's active tab, search query, filters and scroll limit.
+  if (initialItems !== previousInitialItems) {
+    setPreviousInitialItems(initialItems);
+    setItems(initialItems);
+  }
 
   const filtered = React.useMemo(() => {
     const q = query.trim();

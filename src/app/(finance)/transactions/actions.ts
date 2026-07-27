@@ -105,6 +105,16 @@ function decisionKey(decision: Pick<ImportDecision, 'sourceRow' | 'fingerprint'>
   return `${decision.sourceRow}:${decision.fingerprint}`;
 }
 
+function sourceRowFromErrorMessage(message: string): number | undefined {
+  const match = /source row (\d+)/i.exec(message);
+  if (!match) return undefined;
+
+  const sourceRow = Number(match[1]);
+  return Number.isSafeInteger(sourceRow) && sourceRow > 0
+    ? sourceRow
+    : undefined;
+}
+
 function normalizedPersonName(name: string): string {
   return name.replaceAll(/\s+/g, '').toLocaleLowerCase('he');
 }
@@ -353,11 +363,6 @@ export async function commitTransactionImportAction(
     let skippedCount = preview.stats.skipped;
 
     for (const candidate of preview.candidates) {
-      if (candidate.status === 'pending') {
-        skippedCount += 1;
-        continue;
-      }
-
       const decision = decisionsByKey.get(
         decisionKey({
           sourceRow: candidate.sourceRow,
@@ -367,7 +372,8 @@ export async function commitTransactionImportAction(
       if (!decision) {
         return {
           status: 'error',
-          message: 'חסר סיווג לאחת התנועות. יש לבדוק את הרשימה ולנסות שוב.',
+          message: `חסר סיווג עבור ${candidate.merchant} (שורה ${candidate.sourceRow} בקובץ).`,
+          sourceRow: candidate.sourceRow,
         };
       }
 
@@ -380,7 +386,8 @@ export async function commitTransactionImportAction(
       ) {
         return {
           status: 'error',
-          message: `הקטגוריה בשורה ${candidate.sourceRow} אינה מתאימה לסוג התנועה.`,
+          message: `הקטגוריה עבור ${candidate.merchant} (שורה ${candidate.sourceRow} בקובץ) אינה מתאימה לסוג התנועה.`,
+          sourceRow: candidate.sourceRow,
         };
       }
 
@@ -398,13 +405,15 @@ export async function commitTransactionImportAction(
       ) {
         return {
           status: 'error',
-          message: `הסיווג בשורה ${candidate.sourceRow} אינו מתאים לסכום התנועה.`,
+          message: `הסיווג עבור ${candidate.merchant} (שורה ${candidate.sourceRow} בקובץ) אינו מתאים לסכום התנועה.`,
+          sourceRow: candidate.sourceRow,
         };
       }
       if (!candidate.account.last4) {
         return {
           status: 'error',
-          message: `לא הצלחנו לזהות את ארבע הספרות האחרונות בשורה ${candidate.sourceRow}.`,
+          message: `לא הצלחנו לזהות את ארבע הספרות האחרונות של הכרטיס עבור ${candidate.merchant} (שורה ${candidate.sourceRow} בקובץ).`,
+          sourceRow: candidate.sourceRow,
         };
       }
 
@@ -422,7 +431,7 @@ export async function commitTransactionImportAction(
       return {
         status: 'error',
         message:
-          'אין תנועות מוכנות לשמירה. תנועות ממתינות והעברות פנימיות אינן נשמרות בשלב הזה.',
+          'אין תנועות מוכנות לשמירה. העברות פנימיות אינן נשמרות בשלב הזה.',
       };
     }
 
@@ -483,10 +492,12 @@ export async function commitTransactionImportAction(
         };
       }
       console.error('Transaction import commit failed', { code: error.code });
+      const sourceRow = sourceRowFromErrorMessage(error.message);
       return {
         status: 'error',
         message:
           'לא הצלחנו לשמור את התנועות. דבר לא נשמר ואפשר לנסות שוב בבטחה.',
+        ...(sourceRow ? { sourceRow } : {}),
       };
     }
 

@@ -28,7 +28,12 @@ export function isIsracardWorkbook(rows: SpreadsheetRow[]): boolean {
 function findCardLast4(rows: SpreadsheetRow[]): string | undefined {
   for (const row of rows.slice(0, 12)) {
     const text = row.map(cellText).join(' ');
-    if (!text.includes('כרטיס')) continue;
+    const looksLikeCardHeading =
+      text.includes('כרטיס') ||
+      /(?:mastercard|masterca|visa|world elite|amex|ישראכרט|דיינרס)/i.test(
+        text,
+      );
+    if (!looksLikeCardHeading) continue;
     const last4 = extractLast4(text);
     if (last4) return last4;
   }

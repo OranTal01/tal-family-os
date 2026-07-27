@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(14);
+select extensions.plan(15);
 
 insert into auth.users (
   id,
@@ -30,7 +30,8 @@ values (
 create temp table categorization_results (
   household_id uuid,
   household_batch uuid,
-  business_batch uuid
+  business_batch uuid,
+  pending_batch uuid
 );
 
 grant select, insert, update on table categorization_results to authenticated;
@@ -293,6 +294,69 @@ select extensions.is(
   ),
   'false:',
   'income uses income classification and does not require an expense category'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '30000000-0000-0000-0000-000000000001',
+  true
+);
+update categorization_results
+   set pending_batch = committed.batch_id
+  from public.commit_categorized_transaction_import(
+    (select household_id from categorization_results),
+    'isracard',
+    'pending-category.xlsx',
+    repeat('d', 64),
+    'xlsx-v1',
+    jsonb_build_array(
+      jsonb_build_object(
+        'source_row', 14,
+        'fingerprint', repeat('5', 64),
+        'account_type', 'credit_card',
+        'masked_last4', '9485',
+        'date', '2026-07-24',
+        'amount', '-22020',
+        'currency', 'ILS',
+        'merchant', 'MYST',
+        'category_id', (
+          select c.id
+            from public.categories c
+           where c.household_id = (
+             select household_id from categorization_results
+           )
+             and c.name = 'אחר לבית'
+        ),
+        'context', 'household',
+        'owner_person_id', (
+          select p.id
+            from public.people p
+           where p.household_id = (
+             select household_id from categorization_results
+           )
+             and p.profile_id = '30000000-0000-0000-0000-000000000001'
+        ),
+        'kind', 'expense',
+        'status', 'pending',
+        'remember_rule', false
+      )
+    ),
+    0
+  ) committed;
+reset role;
+
+select extensions.is(
+  (
+    select tx.status::text
+      from public.transactions tx
+     where tx.household_id = (
+       select household_id from categorization_results
+     )
+       and tx.merchant_name = 'MYST'
+  ),
+  'pending',
+  'a reviewed pending card transaction keeps its provider status'
 );
 
 set local role authenticated;

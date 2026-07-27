@@ -299,7 +299,9 @@ function buildNotices(
     );
   }
   if (candidates.some((candidate) => candidate.status === 'pending')) {
-    notices.push('עסקאות ממתינות של ישראכרט מוצגות, אך לא יישמרו עד שייקלטו.');
+    notices.push(
+      'אפשר לסווג ולשמור גם עסקאות ממתינות של ישראכרט; הן ייכללו בהוצאות עם סימון "ממתינה".',
+    );
   }
   if (
     candidates.some((candidate) =>

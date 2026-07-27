@@ -111,7 +111,7 @@ export type ImportDecision = {
 
 export type ImportCommitActionState =
   | { status: 'idle'; message: string }
-  | { status: 'error'; message: string }
+  | { status: 'error'; message: string; sourceRow?: number }
   | {
       status: 'success';
       message: string;

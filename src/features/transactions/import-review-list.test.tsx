@@ -69,6 +69,112 @@ const candidates: ImportCandidate[] = [
 ];
 
 describe('ImportReviewList', () => {
+  it('moves focus to the first incomplete row and explains what is missing', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    render(
+      <ImportReviewList
+        candidates={candidates}
+        categories={categories}
+        skipped={0}
+        onSave={onSave}
+      />,
+    );
+
+    const save = screen.getByRole('button', {
+      name: 'שמירת 0 תנועות',
+    });
+    expect(save).toBeEnabled();
+
+    await user.click(save);
+
+    const expenseRow = screen.getByText('צילום לעסק').closest('li');
+    expect(expenseRow).toHaveFocus();
+    expect(expenseRow).toHaveAttribute('data-invalid', 'true');
+    expect(
+      within(expenseRow!).getByRole('alert'),
+    ).toHaveTextContent(
+      'יש לבחור משק בית או עסק עבור צילום לעסק (שורה 10 בקובץ).',
+    );
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('moves focus to a row identified by a server save error', () => {
+    render(
+      <ImportReviewList
+        candidates={candidates}
+        categories={categories}
+        skipped={0}
+        saveError={{
+          message: 'לא הצלחנו לזהות את הכרטיס בשורה הזאת.',
+          sourceRow: 11,
+        }}
+        onSave={vi.fn()}
+      />,
+    );
+
+    const incomeRow = screen
+      .getByText('תשלום מלקוחה בביט')
+      .closest('li');
+    expect(incomeRow).toHaveFocus();
+    expect(incomeRow).toHaveAttribute('data-invalid', 'true');
+    expect(within(incomeRow!).getByRole('alert')).toHaveTextContent(
+      'לא הצלחנו לזהות את הכרטיס בשורה הזאת.',
+    );
+  });
+
+  it('allows a pending card transaction to be classified and saved', async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+    const pendingCandidate: ImportCandidate = {
+      ...candidates[0],
+      id: 'pending-expense',
+      fingerprint: 'pending-fingerprint',
+      sourceRow: 14,
+      merchant: 'MYST',
+      status: 'pending',
+      suggestedContext: 'household',
+      reviewReasons: ['pending'],
+    };
+
+    render(
+      <ImportReviewList
+        candidates={[pendingCandidate]}
+        categories={categories}
+        skipped={0}
+        onSave={onSave}
+      />,
+    );
+
+    const pendingRow = screen.getByText('MYST').closest('li');
+    expect(pendingRow).not.toBeNull();
+    expect(
+      within(pendingRow!).getByRole('radio', { name: 'משק בית' }),
+    ).toBeEnabled();
+    expect(within(pendingRow!).getByLabelText('סוג תנועה')).toBeEnabled();
+    expect(within(pendingRow!).getByLabelText('קטגוריה')).toBeEnabled();
+    expect(
+      within(pendingRow!).getByText(/אפשר לסווג ולשמור אותה עכשיו/),
+    ).toBeInTheDocument();
+
+    await user.click(within(pendingRow!).getByLabelText('קטגוריה'));
+    await user.click(
+      await screen.findByRole('option', { name: 'סופר וקניות' }),
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'שמירת 1 תנועות' }),
+    );
+
+    expect(onSave).toHaveBeenCalledWith([
+      expect.objectContaining({
+        sourceRow: 14,
+        context: 'household',
+        kind: 'expense',
+        categoryId: '10000000-0000-4000-8000-000000000001',
+      }),
+    ]);
+  });
+
   it('requires per-row context and an income class before classification is complete', async () => {
     const user = userEvent.setup();
     const onSave = vi.fn();

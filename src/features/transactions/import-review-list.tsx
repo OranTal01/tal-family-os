@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CategoryCombobox } from '@/components/finance/category-combobox';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -62,6 +62,11 @@ type ReviewChoice = {
   allowDuplicate: boolean;
 };
 
+type ReviewError = {
+  message: string;
+  sourceRow: number;
+};
+
 const currencyFormatters = new Map<ImportCurrency, Intl.NumberFormat>();
 
 function formatCandidateAmount(
@@ -97,22 +102,44 @@ function isChoiceComplete(choice: ReviewChoice): boolean {
   );
 }
 
-function isIncluded(
+function isIncluded(choice: ReviewChoice): boolean {
+  return choice.kind !== 'transfer';
+}
+
+function incompleteChoiceMessage(
   candidate: ImportCandidate,
   choice: ReviewChoice,
-): boolean {
-  return candidate.status === 'cleared' && choice.kind !== 'transfer';
+): string {
+  const rowDescription = `${candidate.merchant} (שורה ${candidate.sourceRow} בקובץ)`;
+
+  if (!choice.context) {
+    return `יש לבחור משק בית או עסק עבור ${rowDescription}.`;
+  }
+  if (choice.kind === 'income' && !choice.incomeClass) {
+    return `יש לבחור סיווג הכנסה עבור ${rowDescription}.`;
+  }
+  if (
+    (choice.kind === 'expense' || choice.kind === 'refund') &&
+    !choice.categoryId
+  ) {
+    return `יש לבחור קטגוריה עבור ${rowDescription}.`;
+  }
+  return `יש להשלים את הסיווג עבור ${rowDescription}.`;
 }
 
 function ImportReviewRow({
   candidate,
   categories,
   choice,
+  errorMessage,
+  rowRef,
   onChange,
 }: {
   candidate: ImportCandidate;
   categories: CategoryOption[];
   choice: ReviewChoice;
+  errorMessage?: string;
+  rowRef: (node: HTMLLIElement | null) => void;
   onChange: (next: ReviewChoice) => void;
 }) {
   const idPrefix = `import-${candidate.id}-${candidate.sourceRow}`;
@@ -164,7 +191,26 @@ function ImportReviewRow({
   }
 
   return (
-    <li className='py-4'>
+    <li
+      ref={rowRef}
+      tabIndex={-1}
+      data-invalid={errorMessage ? true : undefined}
+      className={cn(
+        'scroll-mt-6 py-4 outline-none transition-colors',
+        errorMessage &&
+          'my-2 rounded-lg bg-warn-soft/50 px-3 ring-2 ring-warn/50 focus-visible:ring-3',
+      )}
+    >
+      {errorMessage && (
+        <div
+          role='alert'
+          className='mb-3 flex items-start gap-2 rounded-md bg-warn-soft px-3 py-2.5 text-warn-ink'
+        >
+          <Icon name='error' className='mt-0.5 text-[18px]' />
+          <span className='text-caption font-bold'>{errorMessage}</span>
+        </div>
+      )}
+
       <div className='min-w-0'>
         <div className='flex flex-wrap items-center gap-1.5'>
           <span className='truncate text-body font-bold text-ink'>
@@ -217,14 +263,12 @@ function ImportReviewRow({
                   type='button'
                   role='radio'
                   aria-checked={active}
-                  disabled={pending}
                   onClick={() => changeContext(option.value)}
                   className={cn(
                     'flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-caption font-bold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
                     active
                       ? 'bg-accent text-accent-foreground shadow-sm'
                       : 'text-mut hover:text-ink-2',
-                    pending && 'cursor-not-allowed opacity-50',
                   )}
                 >
                   <Icon name={option.icon} className='text-[16px]' />
@@ -241,7 +285,6 @@ function ImportReviewRow({
           </Label>
           <Select
             value={choice.kind}
-            disabled={pending}
             onValueChange={(value) =>
               onChange({
                 ...choice,
@@ -286,7 +329,6 @@ function ImportReviewRow({
             </Label>
             <Select
               value={choice.incomeClass ?? ''}
-              disabled={pending}
               onValueChange={(value) =>
                 onChange({
                   ...choice,
@@ -324,7 +366,7 @@ function ImportReviewRow({
             <CategoryCombobox
               id={`${idPrefix}-category`}
               value={choice.categoryId ?? ''}
-              disabled={pending || !choice.context}
+              disabled={!choice.context}
               options={availableCategories}
               placeholder={
                 choice.context
@@ -361,7 +403,6 @@ function ImportReviewRow({
 
       {needsCategory &&
         choice.categoryId &&
-        !pending &&
         choice.categorySuggestionSource !== 'learned_rule' && (
           <div className='mt-3 flex items-center justify-between gap-3 rounded-md bg-accent-soft px-3 py-2.5'>
             <span className='flex flex-col'>
@@ -383,8 +424,7 @@ function ImportReviewRow({
         )}
 
       {needsCategory &&
-        choice.categorySuggestionSource === 'learned_rule' &&
-        !pending && (
+        choice.categorySuggestionSource === 'learned_rule' && (
           <p className='mt-2 text-caption font-semibold text-pos-ink'>
             הקטגוריה נבחרה לפי תיקון ששמרתם בייבוא קודם.
           </p>
@@ -399,11 +439,12 @@ function ImportReviewRow({
 
       {pending && (
         <p className='mt-2 text-caption font-semibold text-warn-ink'>
-          התנועה עדיין ממתינה אצל חברת האשראי ולכן לא תישמר כעת.
+          התנועה עדיין ממתינה אצל חברת האשראי. אפשר לסווג ולשמור אותה
+          עכשיו, והיא תיכלל בהוצאות עם סימון ״ממתינה״.
         </p>
       )}
 
-      {candidate.reviewReasons.includes('possible_duplicate') && !pending && (
+      {candidate.reviewReasons.includes('possible_duplicate') && (
         <label className='mt-3 flex items-center justify-between gap-3 rounded-md bg-warn-soft px-3 py-2.5'>
           <span className='flex flex-col'>
             <span className='text-caption font-bold text-warn-ink'>
@@ -430,15 +471,21 @@ export function ImportReviewList({
   categories,
   skipped,
   saving = false,
+  saveError,
+  onReviewChange,
   onSave,
 }: {
   candidates: ImportCandidate[];
   categories: CategoryOption[];
   skipped: number;
   saving?: boolean;
+  saveError?: { message: string; sourceRow?: number };
+  onReviewChange?: () => void;
   onSave: (decisions: ImportDecision[]) => void;
 }) {
   const [limit, setLimit] = useState(PAGE_SIZE);
+  const [validationError, setValidationError] = useState<ReviewError>();
+  const rowRefs = useRef(new Map<number, HTMLLIElement>());
   const [choices, setChoices] = useState<Record<string, ReviewChoice>>(() =>
     Object.fromEntries(
       candidates.map((candidate) => [
@@ -463,7 +510,7 @@ export function ImportReviewList({
       candidates
         .filter((candidate) => {
           const choice = choices[candidateKey(candidate)];
-          return isIncluded(candidate, choice) && isChoiceComplete(choice);
+          return isIncluded(choice) && isChoiceComplete(choice);
         })
         .map((candidate): ImportDecision => {
           const choice = choices[candidateKey(candidate)];
@@ -484,14 +531,13 @@ export function ImportReviewList({
     () =>
       candidates.filter((candidate) => {
         const choice = choices[candidateKey(candidate)];
-        return isIncluded(candidate, choice) && !isChoiceComplete(choice);
+        return isIncluded(choice) && !isChoiceComplete(choice);
       }).length,
     [candidates, choices],
   );
   const commitDecisions = useMemo(
     () =>
       candidates
-        .filter((candidate) => candidate.status === 'cleared')
         .map((candidate): ImportDecision => {
           const choice = choices[candidateKey(candidate)];
           return {
@@ -510,9 +556,59 @@ export function ImportReviewList({
   const excludedCount =
     candidates.filter((candidate) => {
       const choice = choices[candidateKey(candidate)];
-      return !isIncluded(candidate, choice);
+      return !isIncluded(choice);
     }).length + skipped;
-  const visibleCandidates = candidates.slice(0, limit);
+  const importableCount = candidates.filter((candidate) => {
+    const choice = choices[candidateKey(candidate)];
+    return isIncluded(choice);
+  }).length;
+  const activeError = useMemo(
+    () =>
+      validationError ??
+      (saveError?.sourceRow
+        ? {
+            message: saveError.message,
+            sourceRow: saveError.sourceRow,
+          }
+        : undefined),
+    [saveError, validationError],
+  );
+  const activeErrorIndex = activeError
+    ? candidates.findIndex(
+        (candidate) => candidate.sourceRow === activeError.sourceRow,
+      )
+    : -1;
+  const visibleLimit = Math.max(limit, activeErrorIndex + 1);
+  const visibleCandidates = candidates.slice(0, visibleLimit);
+
+  useEffect(() => {
+    if (!activeError) return;
+
+    const row = rowRefs.current.get(activeError.sourceRow);
+    row?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    row?.focus({ preventScroll: true });
+  }, [activeError]);
+
+  function save() {
+    const unresolvedCandidate = candidates.find((candidate) => {
+      const choice = choices[candidateKey(candidate)];
+      return isIncluded(choice) && !isChoiceComplete(choice);
+    });
+
+    if (unresolvedCandidate) {
+      const choice = choices[candidateKey(unresolvedCandidate)];
+      const unresolvedIndex = candidates.indexOf(unresolvedCandidate);
+      setLimit((current) => Math.max(current, unresolvedIndex + 1));
+      setValidationError({
+        sourceRow: unresolvedCandidate.sourceRow,
+        message: incompleteChoiceMessage(unresolvedCandidate, choice),
+      });
+      return;
+    }
+
+    setValidationError(undefined);
+    onSave(commitDecisions);
+  }
 
   return (
     <div className='rounded-lg border border-line bg-surface px-3'>
@@ -541,9 +637,31 @@ export function ImportReviewList({
               candidate={candidate}
               categories={categories}
               choice={choices[key]}
-              onChange={(next) =>
-                setChoices((current) => ({ ...current, [key]: next }))
+              errorMessage={
+                activeError?.sourceRow === candidate.sourceRow
+                  ? activeError.message
+                  : undefined
               }
+              rowRef={(node) => {
+                if (node) {
+                  rowRefs.current.set(candidate.sourceRow, node);
+                } else {
+                  rowRefs.current.delete(candidate.sourceRow);
+                }
+              }}
+              onChange={(next) => {
+                const candidateIndex = candidates.indexOf(candidate);
+                if (activeError?.sourceRow === candidate.sourceRow) {
+                  setLimit((current) =>
+                    Math.max(current, candidateIndex + 1),
+                  );
+                }
+                if (validationError?.sourceRow === candidate.sourceRow) {
+                  setValidationError(undefined);
+                }
+                onReviewChange?.();
+                setChoices((current) => ({ ...current, [key]: next }));
+              }}
             />
           );
         })}
@@ -564,17 +682,15 @@ export function ImportReviewList({
       <div className='flex flex-col gap-2 border-t border-line py-3 sm:flex-row sm:items-center sm:justify-between'>
         <p className='text-caption font-semibold text-mut'>
           {unresolvedCount > 0
-            ? `נדרש להשלים סיווג של ${unresolvedCount} תנועות.`
+            ? `נדרש להשלים סיווג של ${unresolvedCount} תנועות. לחיצה על שמירה תעביר אתכם לשורה הראשונה שחסר בה מידע.`
             : excludedCount > 0
-              ? `${excludedCount} שורות ממתינות, העברות או שורות לא תקינות לא יישמרו.`
+              ? `${excludedCount} העברות או שורות לא תקינות לא יישמרו.`
               : 'כל התנועות מוכנות לשמירה.'}
         </p>
         <Button
           type='button'
-          disabled={
-            saving || unresolvedCount > 0 || readyDecisions.length === 0
-          }
-          onClick={() => onSave(commitDecisions)}
+          disabled={saving || importableCount === 0}
+          onClick={save}
         >
           <Icon name='save' className='text-[16px]' />
           {saving

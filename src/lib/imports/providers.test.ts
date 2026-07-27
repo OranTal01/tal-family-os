@@ -258,4 +258,31 @@ describe('Isracard transaction import profile', () => {
       suggestedKind: 'refund',
     });
   });
+
+  it('reads the card suffix from Isracard card headings without the word card', () => {
+    const rows: SpreadsheetRow[] = [
+      ['פירוט עסקאות'],
+      [],
+      [],
+      [],
+      ['WORLD ELITE MASTERCA - 9485'],
+      ['על שם אורן טל'],
+      [],
+      [],
+      [],
+      [],
+      [],
+      ['עסקאות שטרם נקלטו'],
+      ['תאריך רכישה', 'שם בית עסק', 'סכום עסקה', 'מטבע עסקה'],
+      ['24.07.26', 'MYST', 220.2, '₪'],
+    ];
+
+    const result = parseIsracardRows(rows);
+
+    expect(result.candidates[0]).toMatchObject({
+      merchant: 'MYST',
+      status: 'pending',
+      account: { last4: '9485' },
+    });
+  });
 });
