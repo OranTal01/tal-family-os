@@ -30,7 +30,7 @@ function findCardLast4(rows: SpreadsheetRow[]): string | undefined {
     const text = row.map(cellText).join(' ');
     const looksLikeCardHeading =
       text.includes('כרטיס') ||
-      /(?:mastercard|masterca|visa|world elite|amex|ישראכרט|דיינרס)/i.test(
+      /(?:mastercard|masterca|visa|world elite|amex|מסטרקארד|מאסטרקארד|ויזה|אמריקן אקספרס|ישראכרט|דיינרס)/i.test(
         text,
       );
     if (!looksLikeCardHeading) continue;

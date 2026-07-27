@@ -285,4 +285,38 @@ describe('Isracard transaction import profile', () => {
       account: { last4: '9485' },
     });
   });
+
+  it('reads the card suffix from Hebrew Mastercard headings', () => {
+    const rows: SpreadsheetRow[] = [
+      ['פירוט עסקאות'],
+      [],
+      [],
+      [],
+      ['פלטינה מסטרקארד - 9928'],
+      ['על שם דניאל טל'],
+      [],
+      [],
+      [],
+      [],
+      ['עסקאות למועד חיוב'],
+      [
+        'תאריך רכישה',
+        'שם בית עסק',
+        'סכום עסקה',
+        'מטבע עסקה',
+        'סכום חיוב',
+        'מטבע חיוב',
+        "מס' שובר",
+        'פירוט נוסף',
+      ],
+      ['24.07.26', 'נאייקס ישראל מכונות', 10, '₪', 10, '₪', 785365038, ''],
+    ];
+
+    const result = parseIsracardRows(rows);
+
+    expect(result.candidates[0]).toMatchObject({
+      merchant: 'נאייקס ישראל מכונות',
+      account: { last4: '9928', ownerHint: 'danielle' },
+    });
+  });
 });
