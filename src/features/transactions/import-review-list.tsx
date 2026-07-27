@@ -198,7 +198,7 @@ function ImportReviewRow({
 
       <div className='mt-3 grid gap-3 rounded-lg bg-surface-2 p-3 sm:grid-cols-2 lg:grid-cols-3'>
         <fieldset className='flex flex-col gap-1.5'>
-          <legend className='text-caption font-semibold text-ink-2'>
+          <legend className='flex h-5 items-center text-caption font-semibold text-ink-2'>
             משק בית או עסק
           </legend>
           <div
@@ -238,7 +238,9 @@ function ImportReviewRow({
         </fieldset>
 
         <div className='flex flex-col gap-1.5'>
-          <Label htmlFor={`${idPrefix}-kind`}>סוג תנועה</Label>
+          <Label className='h-5' htmlFor={`${idPrefix}-kind`}>
+            סוג תנועה
+          </Label>
           <Select
             value={choice.kind}
             disabled={pending}
@@ -278,7 +280,12 @@ function ImportReviewRow({
 
         {choice.kind === 'income' ? (
           <div className='flex flex-col gap-1.5'>
-            <Label htmlFor={`${idPrefix}-income-class`}>סיווג הכנסה</Label>
+            <Label
+              className='h-5'
+              htmlFor={`${idPrefix}-income-class`}
+            >
+              סיווג הכנסה
+            </Label>
             <Select
               value={choice.incomeClass ?? ''}
               disabled={pending}
@@ -306,7 +313,7 @@ function ImportReviewRow({
           </div>
         ) : needsCategory ? (
           <div className='flex flex-col gap-1.5'>
-            <div className='flex items-center justify-between gap-2'>
+            <div className='flex h-5 items-center justify-between gap-2'>
               <Label htmlFor={`${idPrefix}-category`}>קטגוריה</Label>
               {choice.categorySuggestionSource && (
                 <Badge variant='secondary'>
