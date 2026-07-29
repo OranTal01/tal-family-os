@@ -1,7 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import type { CategoryOption, TransactionItem } from '@/server/data/views';
+import {
+  updateTransactionClassificationAction,
+  type TransactionClassificationActionResult,
+} from '@/app/(finance)/transactions/actions';
 import { Amount } from '@/components/finance/amount';
 import { EmptyState } from '@/components/finance/empty-state';
 import { ResponsiveDetail } from '@/components/finance/responsive-detail';
@@ -21,6 +26,10 @@ import { toast } from 'sonner';
 const PAGE_SIZE = 30;
 
 type Tab = 'all' | 'expenses' | 'income' | 'review';
+type SavedClassification = Extract<
+  TransactionClassificationActionResult,
+  { status: 'success' }
+>['transaction'];
 
 /**
  * Transactions screen: search, tabs, quick category chips, day-grouped list
@@ -240,11 +249,36 @@ export function TransactionsView({
         item={selected}
         categories={categories}
         onOpenChange={(open) => !open && setSelectedId(null)}
-        onSave={(id, categoryName) => {
+        onSave={(updated) => {
           setItems((prev) =>
             prev.map((t) =>
-              t.id === id
-                ? { ...t, categoryName: categoryName ?? t.categoryName, needsReview: false, tag: undefined }
+              t.id === updated.id
+                ? {
+                    ...t,
+                    categoryId: updated.categoryId,
+                    categoryName: updated.categoryName,
+                    icon:
+                      updated.categoryIcon ??
+                      (t.kind === 'income' ? 'payments' : 'receipt_long'),
+                    meta:
+                      t.kind === 'income'
+                        ? 'הכנסה'
+                        : t.kind === 'refund'
+                          ? 'החזר'
+                          : updated.categoryName ?? 'ללא קטגוריה',
+                    context: updated.context,
+                    ownerId: updated.ownerId,
+                    needsReview: updated.needsReview,
+                    tag: updated.needsReview
+                      ? { label: 'לבדיקה', tone: 'warn', icon: 'error' }
+                      : updated.context === 'business'
+                        ? {
+                            label: 'עסק',
+                            tone: 'future',
+                            icon: 'storefront',
+                          }
+                        : undefined,
+                  }
                 : t,
             ),
           );
@@ -263,14 +297,18 @@ function TransactionDetail({
   item: TransactionItem | null;
   categories: CategoryOption[];
   onOpenChange: (open: boolean) => void;
-  onSave: (id: string, categoryName?: string) => void;
+  onSave: (updated: SavedClassification) => void;
 }) {
+  const router = useRouter();
+  const [isPending, startTransition] = React.useTransition();
+  const [error, setError] = React.useState<string | null>(null);
   const [value, setValue] = React.useState<Classification | null>(null);
   const [prevItem, setPrevItem] = React.useState(item);
 
   // reset the form when a different transaction opens (derived-state reset)
   if (item !== prevItem) {
     setPrevItem(item);
+    setError(null);
     setValue(
       item
         ? {
@@ -287,16 +325,44 @@ function TransactionDetail({
   if (!item || !value) return null;
 
   function save() {
-    const category = categories.find((c) => c.id === value!.categoryId);
-    onSave(item!.id, category?.name);
-    onOpenChange(false);
-    toast.success('התנועה עודכנה', {
-      description: value!.remember
-        ? `נוצר כלל: "${item!.merchant}" ישויך אוטומטית בעתיד. ניתן לנהל בהגדרות.`
-        : undefined,
-      action: { label: 'ביטול', onClick: () => toast('השינוי בוטל') },
+    setError(null);
+    startTransition(async () => {
+      try {
+        const result = await updateTransactionClassificationAction({
+          transactionId: item!.id,
+          categoryId: value!.categoryId,
+          context: value!.context,
+          ownerId: value!.ownerId,
+          rememberRule: value!.remember,
+        });
+
+        if (result.status === 'error') {
+          setError(result.message);
+          toast.error('לא הצלחנו לשמור', {
+            description: result.message,
+          });
+          return;
+        }
+
+        onSave(result.transaction);
+        onOpenChange(false);
+        toast.success('התנועה עודכנה', {
+          description: result.ruleSaved
+            ? `נוצר כלל: "${item!.merchant}" ישויך אוטומטית בייבואים הבאים.`
+            : undefined,
+        });
+        router.refresh();
+      } catch {
+        const message =
+          'לא הצלחנו להתחבר לשרת. דבר לא השתנה ואפשר לנסות שוב.';
+        setError(message);
+        toast.error('לא הצלחנו לשמור', { description: message });
+      }
     });
   }
+
+  const needsCategory =
+    item.kind === 'expense' || item.kind === 'refund';
 
   return (
     <ResponsiveDetail
@@ -305,8 +371,14 @@ function TransactionDetail({
       title={item.merchant}
       description={`${item.dateLabel} · ${item.accountName}`}
       footer={
-        <Button size='lg' className='w-full lg:w-auto' onClick={save}>
-          שמירה
+        <Button
+          size='lg'
+          className='w-full lg:w-auto'
+          onClick={save}
+          disabled={isPending || (needsCategory && !value.categoryId)}
+          aria-busy={isPending}
+        >
+          {isPending ? 'שומר…' : 'שמירה'}
         </Button>
       }
     >
@@ -334,10 +406,21 @@ function TransactionDetail({
           categories={categories}
           merchantName={item.merchant}
           idPrefix='txn'
+          showCategory={item.kind !== 'income'}
+          showTransfer={false}
+          showRemember={item.kind !== 'income'}
         />
+        {error && (
+          <p
+            role='alert'
+            className='rounded-md bg-warn-soft px-3 py-2 text-caption font-bold text-warn-ink'
+          >
+            {error}
+          </p>
+        )}
         <p className='text-caption font-semibold text-mut'>
-          תיקון קטגוריה חל על תנועה זו בלבד. תנועות עבר של אותו עסק אינן משתנות אלא אם
-          תבחרו להחיל רטרואקטיבית דרך כלל.
+          השינוי חל על התנועה הזו בלבד. אם תבחרו ״זכור כלל זה״, ייבואים חדשים
+          מאותו בית עסק יסווגו אוטומטית.
         </p>
       </div>
     </ResponsiveDetail>

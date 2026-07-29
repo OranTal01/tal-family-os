@@ -54,6 +54,38 @@ const importDecisionSchema = z.object({
 
 const importDecisionsSchema = z.array(importDecisionSchema).min(1).max(5_000);
 
+const transactionClassificationSchema = z.object({
+  transactionId: z.string().uuid(),
+  categoryId: z.string().uuid().optional(),
+  context: z.enum(['household', 'business']),
+  ownerId: z.enum(['shared', 'oran', 'danielle']),
+  rememberRule: z.boolean(),
+});
+
+export type TransactionClassificationInput = z.infer<
+  typeof transactionClassificationSchema
+>;
+
+export type TransactionClassificationActionResult =
+  | {
+      status: 'success';
+      message: string;
+      transaction: {
+        id: string;
+        categoryId?: string;
+        categoryName?: string;
+        categoryIcon?: string;
+        context: 'household' | 'business';
+        ownerId: TransactionClassificationInput['ownerId'];
+        needsReview: boolean;
+      };
+      ruleSaved: boolean;
+    }
+  | {
+      status: 'error';
+      message: string;
+    };
+
 type ValidatedWorkbook = {
   file: File;
   buffer: Buffer;
@@ -532,6 +564,149 @@ export async function commitTransactionImportAction(
           : isUserFacingFileError(error)
             ? error.message
             : 'לא הצלחנו להכין את התנועות לשמירה. דבר לא נשמר ואפשר לנסות שוב.',
+    };
+  }
+}
+
+function transactionClassificationError(message: string): string {
+  if (message.includes('not authorized')) {
+    return 'אין לחשבון הזה הרשאה לעדכן תנועות במשק הבית.';
+  }
+  if (message.includes('transaction not found')) {
+    return 'התנועה לא נמצאה. ייתכן שהיא עודכנה או הוסרה בחלון אחר.';
+  }
+  if (message.includes('require a category')) {
+    return 'יש לבחור קטגוריה לפני השמירה.';
+  }
+  if (
+    message.includes('category not found') ||
+    message.includes('category context mismatch')
+  ) {
+    return 'הקטגוריה שנבחרה אינה מתאימה למשק הבית או לעסק.';
+  }
+  if (message.includes('owner not found')) {
+    return 'השיוך שנבחר אינו זמין יותר. אפשר לבחור שיוך אחר ולנסות שוב.';
+  }
+  if (message.includes('transfer transactions')) {
+    return 'שינוי העברה פנימית דורש בחירת חשבון מקור וחשבון יעד.';
+  }
+  if (message.includes('income transactions')) {
+    return 'לא ניתן לשייך קטגוריית הוצאה לתנועת הכנסה.';
+  }
+
+  return 'לא הצלחנו לעדכן את התנועה. דבר לא השתנה ואפשר לנסות שוב.';
+}
+
+export async function updateTransactionClassificationAction(
+  input: TransactionClassificationInput,
+): Promise<TransactionClassificationActionResult> {
+  const parsed = transactionClassificationSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      status: 'error',
+      message: 'אחד מפרטי הסיווג אינו תקין. יש לבדוק ולנסות שוב.',
+    };
+  }
+
+  const user = await getCurrentUser();
+  if (!user) {
+    return {
+      status: 'error',
+      message: 'החיבור לחשבון פג. יש להתנתק ולהיכנס מחדש.',
+    };
+  }
+
+  let membership;
+  try {
+    membership = await getCurrentHouseholdMembership();
+  } catch {
+    return {
+      status: 'error',
+      message: 'לא הצלחנו לאמת את משק הבית. אפשר לרענן ולנסות שוב.',
+    };
+  }
+
+  if (!membership || !['owner', 'member'].includes(membership.role)) {
+    return {
+      status: 'error',
+      message: 'אין לחשבון הזה הרשאה לעדכן תנועות במשק הבית.',
+    };
+  }
+
+  try {
+    let ownerPersonId: string | null = null;
+    if (parsed.data.ownerId !== 'shared') {
+      const owners = await resolveImportOwners({
+        householdId: membership.householdId,
+        requiredHints: new Set([parsed.data.ownerId]),
+      });
+      ownerPersonId = owners[parsed.data.ownerId] ?? null;
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc(
+      'update_transaction_classification',
+      {
+        p_household_id: membership.householdId,
+        p_transaction_id: parsed.data.transactionId,
+        p_category_id: parsed.data.categoryId ?? null,
+        p_context: parsed.data.context,
+        p_owner_person_id: ownerPersonId,
+        p_remember_rule: parsed.data.rememberRule,
+      },
+    );
+
+    if (error) {
+      console.error('Transaction classification update failed', {
+        code: error.code,
+      });
+      return {
+        status: 'error',
+        message: transactionClassificationError(error.message),
+      };
+    }
+
+    const updated = data?.[0];
+    if (!updated) {
+      return {
+        status: 'error',
+        message:
+          'לא התקבל אישור שמירה ממסד הנתונים. דבר לא השתנה ואפשר לנסות שוב.',
+      };
+    }
+
+    for (const path of [
+      '/transactions',
+      '/dashboard',
+      '/budget',
+      '/business',
+      '/daily',
+    ]) {
+      revalidatePath(path);
+    }
+
+    return {
+      status: 'success',
+      message: 'התנועה נשמרה בהצלחה.',
+      transaction: {
+        id: updated.transaction_id,
+        categoryId: updated.category_id ?? undefined,
+        categoryName: updated.category_name ?? undefined,
+        categoryIcon: updated.category_icon ?? undefined,
+        context: updated.context,
+        ownerId: parsed.data.ownerId,
+        needsReview: updated.needs_review,
+      },
+      ruleSaved: updated.rule_saved,
+    };
+  } catch (error) {
+    console.error('Transaction classification preparation failed', {
+      code: error instanceof Error ? error.name : 'unexpected',
+    });
+    return {
+      status: 'error',
+      message:
+        'לא הצלחנו להכין את התנועה לשמירה. דבר לא השתנה ואפשר לנסות שוב.',
     };
   }
 }

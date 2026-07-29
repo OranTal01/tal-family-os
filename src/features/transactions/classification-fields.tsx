@@ -39,29 +39,37 @@ export function ClassificationFields({
   categories,
   merchantName,
   idPrefix,
+  showCategory = true,
+  showTransfer = true,
+  showRemember = true,
 }: {
   value: Classification;
   onChange: (next: Classification) => void;
   categories: CategoryOption[];
   merchantName: string;
   idPrefix: string;
+  showCategory?: boolean;
+  showTransfer?: boolean;
+  showRemember?: boolean;
 }) {
   const contextCategories = categories.filter((c) => c.context === value.context);
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='flex flex-col gap-1.5'>
-        <Label htmlFor={`${idPrefix}-category`}>קטגוריה</Label>
-        <CategoryCombobox
-          id={`${idPrefix}-category`}
-          value={value.categoryId ?? ''}
-          options={contextCategories}
-          onValueChange={(categoryId) =>
-            onChange({ ...value, categoryId })
-          }
-          disabled={value.isTransfer}
-        />
-      </div>
+      {showCategory && (
+        <div className='flex flex-col gap-1.5'>
+          <Label htmlFor={`${idPrefix}-category`}>קטגוריה</Label>
+          <CategoryCombobox
+            id={`${idPrefix}-category`}
+            value={value.categoryId ?? ''}
+            options={contextCategories}
+            onValueChange={(categoryId) =>
+              onChange({ ...value, categoryId })
+            }
+            disabled={value.isTransfer}
+          />
+        </div>
+      )}
 
       <fieldset className='flex flex-col gap-1.5'>
         <legend className='text-caption font-semibold text-ink-2'>הקשר</legend>
@@ -112,35 +120,45 @@ export function ClassificationFields({
         </Select>
       </div>
 
-      <label className='flex items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
-        <span className='flex flex-col'>
-          <span className='text-body font-bold text-ink'>העברה פנימית</span>
-          <span className='text-caption font-semibold text-mut'>
-            תנועה בין חשבונות שלנו — לא הכנסה ולא הוצאה
+      {showTransfer && (
+        <label className='flex items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
+          <span className='flex flex-col'>
+            <span className='text-body font-bold text-ink'>העברה פנימית</span>
+            <span className='text-caption font-semibold text-mut'>
+              תנועה בין חשבונות שלנו — לא הכנסה ולא הוצאה
+            </span>
           </span>
-        </span>
-        <Switch
-          checked={value.isTransfer}
-          onCheckedChange={(checked) =>
-            onChange({ ...value, isTransfer: checked, categoryId: checked ? undefined : value.categoryId })
-          }
-        />
-      </label>
+          <Switch
+            checked={value.isTransfer}
+            onCheckedChange={(checked) =>
+              onChange({
+                ...value,
+                isTransfer: checked,
+                categoryId: checked ? undefined : value.categoryId,
+              })
+            }
+          />
+        </label>
+      )}
 
-      <label className='flex items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
-        <span className='flex flex-col'>
-          <span className='text-body font-bold text-ink'>זכור כלל זה</span>
-          <span className='text-caption font-semibold text-mut'>
-            {value.isTransfer
-              ? `סמן אוטומטית העברות מ"${merchantName}" בעתיד`
-              : `שייך אוטומטית את "${merchantName}" לקטגוריה זו בעתיד`}
+      {showRemember && (
+        <label className='flex items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
+          <span className='flex flex-col'>
+            <span className='text-body font-bold text-ink'>זכור כלל זה</span>
+            <span className='text-caption font-semibold text-mut'>
+              {value.isTransfer
+                ? `סמן אוטומטית העברות מ"${merchantName}" בעתיד`
+                : `שייך אוטומטית את "${merchantName}" לקטגוריה זו בעתיד`}
+            </span>
           </span>
-        </span>
-        <Switch
-          checked={value.remember}
-          onCheckedChange={(checked) => onChange({ ...value, remember: checked })}
-        />
-      </label>
+          <Switch
+            checked={value.remember}
+            onCheckedChange={(checked) =>
+              onChange({ ...value, remember: checked })
+            }
+          />
+        </label>
+      )}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
 import {
   commitTransactionImportAction,
   previewTransactionImportAction,
+  updateTransactionClassificationAction,
 } from './actions';
 
 vi.mock('server-only', () => ({}));
@@ -462,5 +463,116 @@ describe('commitTransactionImportAction', () => {
       message:
         'הקובץ הזה כבר נשמר בעבר. אפשר לראות את התנועות שלו במסך התנועות.',
     });
+  });
+});
+
+describe('updateTransactionClassificationAction', () => {
+  it('persists a transaction correction and revalidates every affected screen', async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: [
+        {
+          transaction_id: '20000000-0000-4000-8000-000000000001',
+          category_id: '10000000-0000-4000-8000-000000000001',
+          category_name: 'סופר וקניות',
+          category_icon: 'shopping_cart',
+          context: 'household',
+          owner_person_id: null,
+          needs_review: false,
+          rule_saved: true,
+        },
+      ],
+      error: null,
+    });
+
+    const result = await updateTransactionClassificationAction({
+      transactionId: '20000000-0000-4000-8000-000000000001',
+      categoryId: '10000000-0000-4000-8000-000000000001',
+      context: 'household',
+      ownerId: 'shared',
+      rememberRule: true,
+    });
+
+    expect(result).toEqual({
+      status: 'success',
+      message: 'התנועה נשמרה בהצלחה.',
+      transaction: {
+        id: '20000000-0000-4000-8000-000000000001',
+        categoryId: '10000000-0000-4000-8000-000000000001',
+        categoryName: 'סופר וקניות',
+        categoryIcon: 'shopping_cart',
+        context: 'household',
+        ownerId: 'shared',
+        needsReview: false,
+      },
+      ruleSaved: true,
+    });
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      'update_transaction_classification',
+      {
+        p_household_id: 'household-1',
+        p_transaction_id: '20000000-0000-4000-8000-000000000001',
+        p_category_id: '10000000-0000-4000-8000-000000000001',
+        p_context: 'household',
+        p_owner_person_id: null,
+        p_remember_rule: true,
+      },
+    );
+    expect(mocks.revalidatePath.mock.calls).toEqual([
+      ['/transactions'],
+      ['/dashboard'],
+      ['/budget'],
+      ['/business'],
+      ['/daily'],
+    ]);
+  });
+
+  it('blocks read-only viewers before changing a transaction', async () => {
+    mocks.getCurrentHouseholdMembership.mockResolvedValue({
+      householdId: 'household-1',
+      role: 'viewer',
+    });
+
+    const result = await updateTransactionClassificationAction({
+      transactionId: '20000000-0000-4000-8000-000000000001',
+      categoryId: '10000000-0000-4000-8000-000000000001',
+      context: 'household',
+      ownerId: 'shared',
+      rememberRule: false,
+    });
+
+    expect(result).toEqual({
+      status: 'error',
+      message: 'אין לחשבון הזה הרשאה לעדכן תנועות במשק הבית.',
+    });
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it('returns a useful message when the category and context do not match', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mocks.rpc.mockResolvedValueOnce({
+      data: null,
+      error: {
+        code: 'P0001',
+        message: 'transaction category context mismatch',
+      },
+    });
+
+    const result = await updateTransactionClassificationAction({
+      transactionId: '20000000-0000-4000-8000-000000000001',
+      categoryId: '10000000-0000-4000-8000-000000000001',
+      context: 'business',
+      ownerId: 'shared',
+      rememberRule: false,
+    });
+
+    expect(result).toEqual({
+      status: 'error',
+      message: 'הקטגוריה שנבחרה אינה מתאימה למשק הבית או לעסק.',
+    });
+    expect(consoleError).toHaveBeenCalledWith(
+      'Transaction classification update failed',
+      { code: 'P0001' },
+    );
+    consoleError.mockRestore();
   });
 });

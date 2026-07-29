@@ -1911,6 +1911,26 @@ export type Database = {
           conflict_count: number
         }[]
       }
+      update_transaction_classification: {
+        Args: {
+          p_category_id: string | null
+          p_context: Database["public"]["Enums"]["finance_context"]
+          p_household_id: string
+          p_owner_person_id?: string | null
+          p_remember_rule?: boolean
+          p_transaction_id: string
+        }
+        Returns: {
+          category_icon: string | null
+          category_id: string | null
+          category_name: string | null
+          context: Database["public"]["Enums"]["finance_context"]
+          needs_review: boolean
+          owner_person_id: string | null
+          rule_saved: boolean
+          transaction_id: string
+        }[]
+      }
     }
     Enums: {
       account_type:
