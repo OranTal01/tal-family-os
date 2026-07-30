@@ -1,7 +1,7 @@
 /**
  * Hebrew date display per PRODUCT_SPEC §7: "היום · 09:14", "אתמול", "14 ביולי",
- * "1 באוגוסט", month "יולי 2025". All "day in Israel" semantics; the mock phase
- * uses local dates directly (ISO yyyy-MM-dd strings in the domain).
+ * "1 באוגוסט", month "יולי 2025". All "day in Israel" semantics use local
+ * dates directly (ISO yyyy-MM-dd strings in the domain).
  */
 
 export type MonthKey = `${number}-${string}`; // "2026-07"
@@ -75,7 +75,7 @@ export function formatRelativeDay(
   return formatDayMonth(iso);
 }
 
-/** "09:14" from a Date (mock data mostly carries explicit times) */
+/** "09:14" from a Date. */
 export function formatTime(date: Date): string {
   return hebTime.format(date);
 }

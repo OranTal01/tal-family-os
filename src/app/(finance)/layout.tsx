@@ -54,9 +54,13 @@ export default async function FinanceLayout({
     return <HouseholdSetup displayName={profile.display_name} />;
   }
 
-  const { reviewCount, syncedAgo } = await getShellData();
+  const { reviewCount, syncState, syncedAgo } = await getShellData();
   return (
-    <AppShell reviewCount={reviewCount} syncedAgo={syncedAgo}>
+    <AppShell
+      reviewCount={reviewCount}
+      syncState={syncState}
+      syncedAgo={syncedAgo}
+    >
       {children}
     </AppShell>
   );

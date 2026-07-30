@@ -180,6 +180,9 @@ beforeEach(() => {
         inserted_count: 1,
         duplicate_count: 0,
         review_count: 0,
+        balance_snapshot_count: 0,
+        observed_movement_count: 0,
+        reused_batch: false,
       },
     ],
     error: null,
@@ -341,13 +344,15 @@ describe('commitTransactionImportAction', () => {
       duplicateCount: 0,
       reviewCount: 0,
       skippedCount: 0,
+      balanceUpdated: false,
+      observedMovementCount: 0,
     });
     expect(mocks.parseTransactionWorkbook).toHaveBeenCalledWith(
       expect.any(Buffer),
       'transactions.xlsx',
     );
     expect(mocks.rpc).toHaveBeenCalledWith(
-      'commit_categorized_transaction_import',
+      'commit_categorized_transaction_import_with_balances',
       expect.objectContaining({
         p_household_id: 'household-1',
         p_provider: 'cal',
@@ -365,9 +370,15 @@ describe('commitTransactionImportAction', () => {
             remember_rule: true,
           }),
         ],
+        p_balance_snapshots: [],
       }),
     );
-    expect(mocks.revalidatePath).toHaveBeenCalledWith('/transactions');
+    expect(mocks.revalidatePath.mock.calls).toEqual([
+      ['/transactions'],
+      ['/accounts'],
+      ['/dashboard'],
+      ['/assets'],
+    ]);
   });
 
   it('commits a categorized pending card transaction with its pending status', async () => {
@@ -393,7 +404,7 @@ describe('commitTransactionImportAction', () => {
 
     expect(result.status).toBe('success');
     expect(mocks.rpc).toHaveBeenCalledWith(
-      'commit_categorized_transaction_import',
+      'commit_categorized_transaction_import_with_balances',
       expect.objectContaining({
         p_rows: [
           expect.objectContaining({
@@ -403,6 +414,209 @@ describe('commitTransactionImportAction', () => {
           }),
         ],
         p_skipped_count: 0,
+      }),
+    );
+  });
+
+  it('stores the newest reported bank balance separately from spending', async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: [
+        {
+          batch_id: 'existing-bank-batch',
+          inserted_count: 0,
+          duplicate_count: 2,
+          review_count: 0,
+          balance_snapshot_count: 1,
+          observed_movement_count: 0,
+          reused_batch: true,
+        },
+      ],
+      error: null,
+    });
+    mocks.parseTransactionWorkbook.mockResolvedValue({
+      ...preview,
+      provider: 'fibi',
+      candidates: [
+        {
+          ...preview.candidates[0],
+          account: {
+            provider: 'fibi',
+            accountType: 'bank',
+            ownerHint: 'shared',
+            last4: '3270',
+          },
+          dateISO: '2026-07-24',
+          sourceRow: 12,
+          balanceAfter: 10_100_000,
+        },
+        {
+          ...preview.candidates[0],
+          id: 'balance-latest',
+          fingerprint: 'b'.repeat(64),
+          account: {
+            provider: 'fibi',
+            accountType: 'bank',
+            ownerHint: 'shared',
+            last4: '3270',
+          },
+          dateISO: '2026-07-25',
+          sourceRow: 13,
+          balanceAfter: 10_201_465,
+        },
+      ],
+      stats: {
+        ...preview.stats,
+        detected: 2,
+        eligible: 2,
+      },
+    });
+
+    const result = await commitTransactionImportAction(
+      commitFormData([
+        {
+          sourceRow: 12,
+          fingerprint: 'a'.repeat(64),
+          context: 'household',
+          kind: 'expense',
+          categoryId: '10000000-0000-4000-8000-000000000001',
+          rememberRule: false,
+          allowDuplicate: false,
+        },
+        {
+          sourceRow: 13,
+          fingerprint: 'b'.repeat(64),
+          context: 'household',
+          kind: 'expense',
+          categoryId: '10000000-0000-4000-8000-000000000001',
+          rememberRule: false,
+          allowDuplicate: false,
+        },
+      ]),
+    );
+
+    expect(result).toEqual({
+      status: 'success',
+      message: 'יתרת העו״ש ותנועות שאינן הוצאה עודכנו בקובץ שכבר יובא.',
+      batchId: 'existing-bank-batch',
+      insertedCount: 0,
+      duplicateCount: 2,
+      reviewCount: 0,
+      skippedCount: 0,
+      balanceUpdated: true,
+      observedMovementCount: 0,
+    });
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      'commit_categorized_transaction_import_with_balances',
+      expect.objectContaining({
+        p_balance_snapshots: [
+          {
+            account_type: 'bank',
+            masked_last4: '3270',
+            balance: 10_201_465,
+            snapshot_date: '2026-07-25',
+          },
+        ],
+      }),
+    );
+  });
+
+  it('preserves a pension contribution without counting it as spending', async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: [
+        {
+          batch_id: 'bank-batch',
+          inserted_count: 1,
+          duplicate_count: 0,
+          review_count: 0,
+          balance_snapshot_count: 0,
+          observed_movement_count: 1,
+          reused_batch: false,
+        },
+      ],
+      error: null,
+    });
+    mocks.parseTransactionWorkbook.mockResolvedValue({
+      ...preview,
+      provider: 'fibi',
+      candidates: [
+        {
+          ...preview.candidates[0],
+          account: {
+            provider: 'fibi',
+            accountType: 'bank',
+            ownerHint: 'shared',
+            last4: '3270',
+          },
+        },
+        {
+          ...preview.candidates[0],
+          id: 'savings-contribution',
+          fingerprint: 'b'.repeat(64),
+          sourceRow: 4,
+          account: {
+            provider: 'fibi',
+            accountType: 'bank',
+            ownerHint: 'shared',
+            last4: '3270',
+          },
+          amount: agorot(-50_000),
+          merchant: 'הראל פנסיה וגמל',
+          suggestedKind: 'transfer',
+          reviewReasons: ['savings_contribution'],
+          eligible: false,
+        },
+      ],
+      stats: {
+        ...preview.stats,
+        detected: 2,
+        eligible: 1,
+        needsReview: 1,
+      },
+    });
+
+    const result = await commitTransactionImportAction(
+      commitFormData([
+        {
+          sourceRow: 3,
+          fingerprint: 'a'.repeat(64),
+          context: 'household',
+          kind: 'expense',
+          categoryId: '10000000-0000-4000-8000-000000000001',
+          rememberRule: false,
+          allowDuplicate: false,
+        },
+        {
+          sourceRow: 4,
+          fingerprint: 'b'.repeat(64),
+          context: 'household',
+          kind: 'transfer',
+          rememberRule: false,
+          allowDuplicate: false,
+        },
+      ]),
+    );
+
+    expect(result).toMatchObject({
+      status: 'success',
+      insertedCount: 1,
+      skippedCount: 1,
+      observedMovementCount: 1,
+    });
+    expect(mocks.rpc).toHaveBeenCalledWith(
+      'commit_categorized_transaction_import_with_balances',
+      expect.objectContaining({
+        p_observed_movements: [
+          {
+            source_row: 4,
+            fingerprint: 'b'.repeat(64),
+            account_type: 'bank',
+            masked_last4: '3270',
+            date: '2026-07-01',
+            amount: -50_000,
+            merchant: 'הראל פנסיה וגמל',
+            movement_type: 'savings_contribution',
+          },
+        ],
       }),
     );
   });
@@ -479,6 +693,7 @@ describe('updateTransactionClassificationAction', () => {
           owner_person_id: null,
           needs_review: false,
           rule_saved: true,
+          is_recurring: true,
         },
       ],
       error: null,
@@ -490,6 +705,7 @@ describe('updateTransactionClassificationAction', () => {
       context: 'household',
       ownerId: 'shared',
       rememberRule: true,
+      isRecurring: true,
     });
 
     expect(result).toEqual({
@@ -503,11 +719,12 @@ describe('updateTransactionClassificationAction', () => {
         context: 'household',
         ownerId: 'shared',
         needsReview: false,
+        isRecurring: true,
       },
       ruleSaved: true,
     });
     expect(mocks.rpc).toHaveBeenCalledWith(
-      'update_transaction_classification',
+      'update_transaction_classification_with_recurring',
       {
         p_household_id: 'household-1',
         p_transaction_id: '20000000-0000-4000-8000-000000000001',
@@ -515,6 +732,7 @@ describe('updateTransactionClassificationAction', () => {
         p_context: 'household',
         p_owner_person_id: null,
         p_remember_rule: true,
+        p_is_recurring: true,
       },
     );
     expect(mocks.revalidatePath.mock.calls).toEqual([
@@ -523,6 +741,7 @@ describe('updateTransactionClassificationAction', () => {
       ['/budget'],
       ['/business'],
       ['/daily'],
+      ['/planning'],
     ]);
   });
 
@@ -538,6 +757,7 @@ describe('updateTransactionClassificationAction', () => {
       context: 'household',
       ownerId: 'shared',
       rememberRule: false,
+      isRecurring: false,
     });
 
     expect(result).toEqual({
@@ -563,6 +783,7 @@ describe('updateTransactionClassificationAction', () => {
       context: 'business',
       ownerId: 'shared',
       rememberRule: false,
+      isRecurring: false,
     });
 
     expect(result).toEqual({

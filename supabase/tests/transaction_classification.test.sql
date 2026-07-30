@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select extensions.plan(6);
+select extensions.plan(10);
 
 insert into auth.users (
   id,
@@ -219,9 +219,99 @@ select set_config(
   '40000000-0000-0000-0000-000000000001',
   true
 );
+select extensions.is(
+  (
+    select result.is_recurring::text
+      from classification_results values_to_save
+      cross join lateral public.update_transaction_classification_with_recurring(
+        values_to_save.household_id,
+        values_to_save.transaction_id,
+        values_to_save.category_id,
+        'household',
+        values_to_save.owner_person_id,
+        false,
+        true
+      ) result
+  ),
+  'true',
+  'the recurring wrapper returns the saved recurring state'
+);
+reset role;
+
+select extensions.is(
+  (
+    select
+      rt.amount::text || ':' ||
+      rt.category_id::text || ':' ||
+      rt.account_id::text || ':' ||
+      rt.day_of_month::text || ':' ||
+      rt.cadence::text || ':' ||
+      rt.context::text || ':' ||
+      rt.active::text
+      from public.recurring_transactions rt
+     where rt.household_id = (
+       select household_id from classification_results
+     )
+       and app.normalize_merchant_pattern(rt.name) = 'wolt ישראל'
+  ),
+  (
+    select
+      '4290:' ||
+      category_id::text || ':' ||
+      account_id::text ||
+      ':29:monthly:household:true'
+      from classification_results
+  ),
+  'marking an expense recurring creates its private monthly template'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '40000000-0000-0000-0000-000000000001',
+  true
+);
+select extensions.is(
+  (
+    select result.is_recurring::text
+      from classification_results values_to_save
+      cross join lateral public.update_transaction_classification_with_recurring(
+        values_to_save.household_id,
+        values_to_save.transaction_id,
+        values_to_save.category_id,
+        'household',
+        values_to_save.owner_person_id,
+        false,
+        false
+      ) result
+  ),
+  'false',
+  'the recurring wrapper returns the cleared recurring state'
+);
+reset role;
+
+select extensions.is(
+  (
+    select rt.active::text
+      from public.recurring_transactions rt
+     where rt.household_id = (
+       select household_id from classification_results
+     )
+       and app.normalize_merchant_pattern(rt.name) = 'wolt ישראל'
+  ),
+  'false',
+  'clearing recurring keeps history and deactivates the monthly template'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claim.sub',
+  '40000000-0000-0000-0000-000000000001',
+  true
+);
 select extensions.throws_ok(
   format(
-    'select public.update_transaction_classification(%L, %L, %L, %L, %L, false)',
+    'select public.update_transaction_classification_with_recurring(%L, %L, %L, %L, %L, false, false)',
     (select household_id from classification_results),
     (select transaction_id from classification_results),
     (select category_id from classification_results),
@@ -242,7 +332,7 @@ select set_config(
 );
 select extensions.throws_ok(
   format(
-    'select public.update_transaction_classification(%L, %L, %L, %L, %L, false)',
+    'select public.update_transaction_classification_with_recurring(%L, %L, %L, %L, %L, false, false)',
     (select household_id from classification_results),
     (select transaction_id from classification_results),
     (select category_id from classification_results),

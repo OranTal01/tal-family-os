@@ -175,6 +175,48 @@ describe('ImportReviewList', () => {
     ]);
   });
 
+  it('explains that a monthly card settlement is excluded, not an internal expense', () => {
+    const settlement: ImportCandidate = {
+      ...candidates[0],
+      id: 'card-settlement',
+      fingerprint: 'settlement-fingerprint',
+      sourceRow: 18,
+      account: {
+        provider: 'fibi',
+        accountType: 'bank',
+        ownerHint: 'shared',
+        last4: '3270',
+      },
+      merchant: 'הרשאה דיינרס',
+      suggestedKind: 'transfer',
+      suggestedContext: 'household',
+      reviewReasons: ['credit_card_settlement'],
+    };
+
+    render(
+      <ImportReviewList
+        candidates={[settlement]}
+        categories={categories}
+        skipped={0}
+        onSave={vi.fn()}
+      />,
+    );
+
+    const settlementRow = screen.getByText('הרשאה דיינרס').closest('li');
+    expect(settlementRow).not.toBeNull();
+    expect(
+      within(settlementRow!).getByLabelText('סוג תנועה'),
+    ).toHaveTextContent('חיוב כרטיס — לא נספר כהוצאה');
+    expect(
+      within(settlementRow!).getByText(
+        /החיוב החודשי לא יישמר כהוצאה/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('0 תנועות מוכנות לשמירה'),
+    ).toBeInTheDocument();
+  });
+
   it('requires per-row context and an income class before classification is complete', async () => {
     const user = userEvent.setup();
     const onSave = vi.fn();
@@ -215,7 +257,7 @@ describe('ImportReviewList', () => {
     const equipmentOption = await screen.findByRole('option', {
       name: 'ציוד וטכנולוגיה',
     });
-    expect(equipmentOption).toHaveClass('justify-center', 'text-center');
+    expect(equipmentOption).toHaveClass('justify-start', 'text-start');
     await user.click(
       equipmentOption,
     );

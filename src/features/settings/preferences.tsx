@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 /**
  * Preferences block (design screen 14): currency/language are display-only in
  * the single-household MVP; theme is live; notification/security toggles keep
- * session state and explain their demo scope.
+ * session state and explain what is not connected yet.
  */
 export function Preferences() {
   const [smartAlerts, setSmartAlerts] = React.useState(true);
@@ -32,7 +32,7 @@ export function Preferences() {
           onCheckedChange={(checked) => {
             setSmartAlerts(checked);
             toast(checked ? 'התראות חכמות הופעלו' : 'התראות חכמות כובו', {
-              description: 'שליחת התראות בפועל תתחבר בשלב הבא — ללא ספק חיצוני בהדגמה.',
+              description: 'שליחת התראות בפועל עדיין אינה מחוברת לספק חיצוני.',
             });
           }}
           aria-label='התראות חכמות'

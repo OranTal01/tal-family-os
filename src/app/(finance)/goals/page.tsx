@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
 import { PageContainer, PageHeader } from '@/components/shell/page-container';
 import { Amount } from '@/components/finance/amount';
+import { EmptyState } from '@/components/finance/empty-state';
 import { ProgressBar } from '@/components/finance/progress-bar';
 import { Icon } from '@/components/ui/icon';
 import { DepositButton } from '@/features/goals/deposit-button';
 import { formatMoney, formatPercent } from '@/lib/format/currency';
-import { getGoalsScreen } from '@/server/data/views';
+import { getPersistedGoalsScreen } from '@/server/data/persisted-wealth';
 
 export const metadata: Metadata = { title: 'יעדים פיננסיים' };
 
 export default async function GoalsPage() {
-  const goals = await getGoalsScreen();
+  const goals = await getPersistedGoalsScreen();
 
   return (
     <PageContainer>
@@ -19,8 +20,15 @@ export default async function GoalsPage() {
         meta='מעקב התקדמות, קצב הפקדות ותחזית מועד לכל יעד'
       />
 
-      <ul className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
-        {goals.map((g) => {
+      {goals.length === 0 ? (
+        <EmptyState
+          icon='flag'
+          title='עדיין לא הוגדרו יעדים'
+          body='אין כאן יעדים או סכומים לדוגמה. נוסיף יעדים רק כשתגדירו אותם.'
+        />
+      ) : (
+        <ul className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
+          {goals.map((g) => {
           const pct = g.utilization / 100;
           return (
             <li
@@ -67,8 +75,9 @@ export default async function GoalsPage() {
               </div>
             </li>
           );
-        })}
-      </ul>
+          })}
+        </ul>
+      )}
     </PageContainer>
   );
 }

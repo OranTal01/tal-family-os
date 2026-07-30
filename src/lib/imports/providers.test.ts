@@ -147,6 +147,17 @@ describe('FIBI transaction import profile', () => {
       ],
       [
         null,
+        9_250,
+        new Date('2026-07-03T00:00:00.000Z'),
+        null,
+        500,
+        'הראל פנסיה וגמל',
+        106,
+        'הרשאה',
+        new Date('2026-07-03T00:00:00.000Z'),
+      ],
+      [
+        null,
         10_250,
         new Date('2026-07-04T00:00:00.000Z'),
         500,
@@ -172,9 +183,10 @@ describe('FIBI transaction import profile', () => {
     const result = parseFibiRows(rows);
 
     expect(result.ownerHint).toBe('shared');
-    expect(result.candidates).toHaveLength(5);
+    expect(result.candidates).toHaveLength(6);
     expect(result.candidates[0]).toMatchObject({
       amount: 100_000,
+      balanceAfter: 1_000_000,
       suggestedKind: 'income',
       suggestedContext: undefined,
       reviewReasons: ['confirm_context'],
@@ -184,7 +196,7 @@ describe('FIBI transaction import profile', () => {
     expect(result.candidates[1]).toMatchObject({
       amount: -20_000,
       suggestedKind: 'transfer',
-      reviewReasons: ['possible_transfer'],
+      reviewReasons: ['credit_card_settlement'],
       eligible: false,
       reference: '102',
     });
@@ -194,13 +206,19 @@ describe('FIBI transaction import profile', () => {
       eligible: true,
     });
     expect(result.candidates[3]).toMatchObject({
+      amount: -50_000,
+      suggestedKind: 'transfer',
+      reviewReasons: ['savings_contribution'],
+      eligible: false,
+    });
+    expect(result.candidates[4]).toMatchObject({
       amount: 50_000,
       suggestedKind: 'income',
       suggestedContext: undefined,
       reviewReasons: ['confirm_context'],
       eligible: false,
     });
-    expect(result.candidates[4]).toMatchObject({
+    expect(result.candidates[5]).toMatchObject({
       amount: -10_000,
       suggestedKind: 'expense',
       suggestedContext: undefined,

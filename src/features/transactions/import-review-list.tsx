@@ -35,6 +35,8 @@ const PAGE_SIZE = 40;
 const reviewLabels: Record<ImportReviewReason, string> = {
   possible_duplicate: 'כפילות אפשרית',
   possible_transfer: 'העברה אפשרית',
+  credit_card_settlement: 'חיוב כרטיס — לא הוצאה',
+  savings_contribution: 'הפקדה לחיסכון',
   pending: 'ממתינה לקליטה',
   confirm_context: 'אישור משק בית / עסק',
 };
@@ -43,7 +45,7 @@ const kindOptions: { value: TransactionKind; label: string }[] = [
   { value: 'expense', label: 'הוצאה' },
   { value: 'income', label: 'הכנסה' },
   { value: 'refund', label: 'החזר' },
-  { value: 'transfer', label: 'העברה פנימית' },
+  { value: 'transfer', label: 'העברה בין חשבונות' },
 ];
 
 const incomeClassOptions: { value: IncomeClass; label: string }[] = [
@@ -153,9 +155,18 @@ function ImportReviewRow({
   const availableCategories = categories.filter(
     (category) => category.context === choice.context,
   );
+  const transferLabel = candidate.reviewReasons.includes(
+    'credit_card_settlement',
+  )
+    ? 'חיוב כרטיס — לא נספר כהוצאה'
+    : candidate.reviewReasons.includes('savings_contribution')
+      ? 'הפקדה לחיסכון — לא נספר כהוצאה'
+      : 'העברה בין חשבונות';
   const selectedKindLabel =
-    kindOptions.find((option) => option.value === choice.kind)?.label ??
-    'בחירת סוג תנועה';
+    choice.kind === 'transfer'
+      ? transferLabel
+      : kindOptions.find((option) => option.value === choice.kind)?.label ??
+        'בחירת סוג תנועה';
   const selectedIncomeClassLabel =
     incomeClassOptions.find(
       (option) => option.value === choice.incomeClass,
@@ -312,7 +323,9 @@ function ImportReviewRow({
             <SelectContent>
               {availableKindOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+                  {option.value === 'transfer'
+                    ? transferLabel
+                    : option.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -432,8 +445,11 @@ function ImportReviewRow({
 
       {choice.kind === 'transfer' && (
         <p className='mt-2 text-caption font-semibold text-mut'>
-          התנועה לא תישמר בייבוא הזה. בהמשך נחבר אותה לחשבון היעד וניצור
-          שתי תנועות העברה תואמות.
+          {candidate.reviewReasons.includes('credit_card_settlement')
+            ? 'החיוב החודשי לא יישמר כהוצאה, כי העסקאות בכרטיס נשמרות בנפרד. הסכום עדיין כלול ביתרת העו״ש שהבנק דיווח.'
+            : candidate.reviewReasons.includes('savings_contribution')
+              ? 'ההפקדה לא תיספר כהוצאה שוטפת. כשנחבר את קרן הפנסיה או החיסכון, נציג אותה כתנועה אל הנכס.'
+              : 'התנועה לא תיספר כהכנסה או כהוצאה. בהמשך נחבר אותה לחשבון היעד ונציג את שני צדי ההעברה.'}
         </p>
       )}
 

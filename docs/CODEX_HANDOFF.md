@@ -113,19 +113,18 @@ This handoff changes only `AGENTS.md` and adds `docs/CODEX_HANDOFF.md`.
 - Tests cover the core invariants, including transfer exclusion, monthly installment
   portions, refund credits, business separation, budget adjustment behavior, and net
   worth.
-- The mock dataset is generated relative to the current date and is guarded by
-  cross-screen consistency tests.
+- The original fixture dataset and its consistency test were removed after every
+  Finance screen moved to authenticated Supabase reads.
 
 ### Data access
 
-- `src/server/data/repository.ts` is the single mock entry point, but it currently returns
-  the entire `FinanceDb`.
-- `src/server/data/views.ts` builds screen-specific serializable view models and invokes
-  the Finance engine.
-- UI code does not directly import the mock database.
-- There are no granular Finance repository interfaces or Supabase Finance adapters yet.
-- Live identity/context queries now cover the authenticated profile and its first
-  household membership. Finance screen repositories remain mock-backed.
+- `src/server/data/views.ts` contains serializable UI contracts only.
+- `src/server/data/persisted-*.ts` contains authenticated household-scoped Supabase
+  readers for transactions, dashboard/budget, planning, accounts, business/split,
+  review, wealth/insurance/goals/kids, daily summary, settings, and the shell.
+- The fixture repository and `src/mocks/` no longer exist. `supabase/seed.sql` is
+  intentionally empty so local resets cannot create believable fake balances.
+- UI code does not query Supabase directly.
 
 ### Database
 
@@ -321,9 +320,9 @@ UI:
 - Server Components fetch data; Client Components own only the interaction that requires
   browser state.
 - Finance calculations remain pure in `src/lib/finance/`.
-- Persistence remains behind `src/server/data/`; screens do not import mocks or Supabase
+- Persistence remains behind `src/server/data/`; screens do not import Supabase
   directly.
-- The mock-to-Supabase transition must be incremental by domain/read model.
+- New read models must return honest zero/empty states when real rows do not exist.
 - Generated Supabase row types are not UI models. Add explicit validated mappers to
   domain/calculation/view types.
 - Household context comes from authenticated membership, not a browser-supplied trusted

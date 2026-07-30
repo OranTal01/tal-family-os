@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { formatRelativeDay } from '@/lib/format/date';
+import { normalizeMerchant } from '@/lib/imports/categorization';
 import { getCurrentHouseholdMembership } from '@/lib/supabase/dal';
 import { createClient } from '@/lib/supabase/server';
 import type {
@@ -10,11 +11,7 @@ import type {
 } from '@/server/data/views';
 import { agorot } from '@/types/money';
 
-/**
- * Reads the real household ledger for the transactions screen. Other finance
- * screens can keep using the fixture repository while their persistence work is
- * completed; imported rows must never be mixed with demo transactions.
- */
+/** Reads the real household ledger for the transactions screen. */
 export async function getPersistedTransactionsScreen(): Promise<TransactionsScreen> {
   const membership = await getCurrentHouseholdMembership();
   if (!membership) {
@@ -22,7 +19,13 @@ export async function getPersistedTransactionsScreen(): Promise<TransactionsScre
   }
 
   const supabase = await createClient();
-  const [transactionsResult, accountsResult, categoriesResult, peopleResult] =
+  const [
+    transactionsResult,
+    accountsResult,
+    categoriesResult,
+    peopleResult,
+    recurringResult,
+  ] =
     await Promise.all([
       supabase
         .from('transactions')
@@ -49,13 +52,19 @@ export async function getPersistedTransactionsScreen(): Promise<TransactionsScre
         .select('id, name')
         .eq('household_id', membership.householdId)
         .is('archived_at', null),
+      supabase
+        .from('recurring_transactions')
+        .select('account_id, name')
+        .eq('household_id', membership.householdId)
+        .eq('active', true),
     ]);
 
   const error =
     transactionsResult.error ??
     accountsResult.error ??
     categoriesResult.error ??
-    peopleResult.error;
+    peopleResult.error ??
+    recurringResult.error;
   if (error) {
     throw new Error('Unable to load persisted transactions', { cause: error });
   }
@@ -64,6 +73,7 @@ export async function getPersistedTransactionsScreen(): Promise<TransactionsScre
   const accountRows = accountsResult.data ?? [];
   const categoryRows = categoriesResult.data ?? [];
   const peopleRows = peopleResult.data ?? [];
+  const recurringRows = recurringResult.data ?? [];
   const accounts = new Map(
     accountRows.map((account) => [account.id, account.name]),
   );
@@ -78,6 +88,12 @@ export async function getPersistedTransactionsScreen(): Promise<TransactionsScre
         : 'oran',
     ]),
   );
+  const recurringKeys = new Set(
+    recurringRows.map(
+      (recurring) =>
+        `${recurring.account_id ?? ''}:${normalizeMerchant(recurring.name)}`,
+    ),
+  );
 
   const items: TransactionItem[] = transactionRows.map(
     (transaction) => {
@@ -90,11 +106,16 @@ export async function getPersistedTransactionsScreen(): Promise<TransactionsScre
           : transaction.kind === 'refund'
             ? 'החזר'
             : category?.name ?? 'ללא קטגוריה';
+      const isRecurring = recurringKeys.has(
+        `${transaction.account_id}:${normalizeMerchant(transaction.merchant_name)}`,
+      );
       const tag: TransactionItem['tag'] = transaction.needs_review
         ? { label: 'לבדיקה', tone: 'warn', icon: 'error' }
         : transaction.context === 'business'
           ? { label: 'עסק', tone: 'future', icon: 'storefront' }
-          : undefined;
+          : isRecurring
+            ? { label: 'קבועה', tone: 'sync', icon: 'event_repeat' }
+            : undefined;
 
       return {
         id: transaction.id,
@@ -116,6 +137,7 @@ export async function getPersistedTransactionsScreen(): Promise<TransactionsScre
           ? owners.get(transaction.owner_person_id)
           : undefined,
         needsReview: transaction.needs_review,
+        isRecurring,
       };
     },
   );

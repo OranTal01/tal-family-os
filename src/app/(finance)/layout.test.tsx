@@ -75,7 +75,11 @@ beforeEach(() => {
     role: 'owner',
   });
   mocks.getPendingHouseholdInvitation.mockResolvedValue(null);
-  mocks.getShellData.mockResolvedValue({ reviewCount: 0, syncedAgo: 'עכשיו' });
+  mocks.getShellData.mockResolvedValue({
+    reviewCount: 0,
+    syncState: 'imported',
+    syncedAgo: 'עכשיו',
+  });
 });
 
 describe('FinanceLayout access flow', () => {

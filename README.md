@@ -3,10 +3,10 @@
 Private family operating system for the Tal family. First active module: **Finance** —
 a calm, Hebrew-first, RTL-first family finance dashboard ("Financial Calm" design).
 
-> Private software for one household. Authentication and household membership are live;
-> Finance screens remain mock-backed. Real provider XLSX files can be parsed into a
-> non-persistent review with context, transaction-kind, and income-class controls, but
-> are not saved yet.
+> Private software for one household. Authentication, household membership, finance
+> screens, categorized XLSX imports, learned merchant rules, recurring expenses, and
+> imported bank-balance snapshots are persisted in Supabase. No sample finance records
+> are shown or seeded.
 
 ## Getting started
 

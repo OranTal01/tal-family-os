@@ -24,12 +24,14 @@ export function CategoryDetail({
   open,
   onOpenChange,
   onBudgetChange,
+  saving = false,
 }: {
   category: CategoryView | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** present on the budget screen; absent (read-only) on the dashboard */
   onBudgetChange?: (categoryId: string, next: Agorot) => void;
+  saving?: boolean;
 }) {
   const [editing, setEditing] = React.useState(false);
   const [value, setValue] = React.useState('');
@@ -46,9 +48,6 @@ export function CategoryDetail({
     }
     onBudgetChange?.(category!.id, (shekels * 100) as Agorot);
     setEditing(false);
-    toast.success('התקציב עודכן לחודש זה', {
-      description: 'השינוי תועד ביומן ההתאמות',
-    });
   }
 
   return (
@@ -85,7 +84,7 @@ export function CategoryDetail({
                   placeholder={String(Math.round(category.allocated / 100))}
                 />
               </div>
-              <Button size='lg' onClick={saveBudget}>
+              <Button size='lg' onClick={saveBudget} disabled={saving}>
                 שמירה
               </Button>
               <Button size='lg' variant='ghost' onClick={() => setEditing(false)}>

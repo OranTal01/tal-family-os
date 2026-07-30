@@ -6,10 +6,10 @@ import { KpiCard } from '@/components/finance/kpi-card';
 import { SectionCard } from '@/components/finance/section-card';
 import { StatusBadge } from '@/components/finance/status-badge';
 import { Icon } from '@/components/ui/icon';
-import { AddExpectedButton } from '@/features/planning/add-expected-button';
 import { formatMoney } from '@/lib/format/currency';
 import { formatMonth } from '@/lib/format/date';
-import { getPlanningScreen, resolveMonth } from '@/server/data/views';
+import { getPersistedPlanningScreen } from '@/server/data/persisted-planning';
+import { resolveMonth } from '@/server/data/views';
 
 export const metadata: Metadata = { title: 'תכנון וצפי' };
 
@@ -20,9 +20,11 @@ export default async function PlanningPage({
 }) {
   const { month: rawMonth } = await searchParams;
   const month = resolveMonth(rawMonth);
-  const p = await getPlanningScreen(month);
+  const p = await getPersistedPlanningScreen(month);
   const surplus = p.balance >= 0;
-  const hasItems = p.groups.some((g) => g.items.length > 0);
+  const hasItems =
+    p.committedInstallments > 0 ||
+    p.groups.some((group) => group.items.length > 0);
 
   return (
     <PageContainer>
@@ -33,7 +35,6 @@ export default async function PlanningPage({
             ? `הכנסה לא ודאית של ${formatMoney(p.uncertainIncome)} אינה נכללת במאזן`
             : undefined
         }
-        actions={<AddExpectedButton />}
       />
 
       <div className='mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3'>
@@ -56,8 +57,7 @@ export default async function PlanningPage({
         <EmptyState
           icon='event_upcoming'
           title='אין הוצאות מתוכננות'
-          body='אפשר לייבא את ההוצאות הקבועות מהחודש הקודם או להוסיף הוצאה צפויה ראשונה.'
-          action={<AddExpectedButton label='ייבוא קבועות מהחודש הקודם' />}
+          body='פתחו הוצאה במסך התנועות, הפעילו „הוצאה קבועה” ושמרו. היא תופיע כאן אוטומטית בכל חודש.'
         />
       ) : (
         <div className='grid gap-4 lg:grid-cols-3'>

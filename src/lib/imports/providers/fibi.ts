@@ -24,8 +24,14 @@ const REQUIRED_HEADERS = [
   'תאריך',
 ] as const;
 
-const STRONG_TRANSFER_PATTERN =
-  /כרטיסי אשראי|ישראכרט|כאל|משיכת מזומן|כספומט|משיכת מזומנים/i;
+const CREDIT_CARD_SETTLEMENT_PATTERN =
+  /כרטיסי אשראי|ישראכרט|כאל|הרשאה דיינרס|חיוב דיינרס/i;
+
+const CASH_TRANSFER_PATTERN =
+  /משיכת מזומן|כספומט|משיכת מזומנים/i;
+
+const SAVINGS_CONTRIBUTION_PATTERN =
+  /פנסיה וגמל|קרן השתלמות|קופת גמל|הפקדה (?:ל)?חיסכון|הפקדה (?:ל)?פיקדון/i;
 
 const OUTGOING_TRANSFER_PATTERN = /העברה|bit|ביט|paybox|פייבוקס/i;
 
@@ -47,6 +53,7 @@ export function parseFibiRows(rows: SpreadsheetRow[]): ProviderParseResult {
   }
 
   const headers = buildHeaderMap(rows[headerIndex]);
+  const balanceColumn = headers.get('יתרה');
   const accountLast4 = extractAccountLast4(rows);
   const candidates: ProviderParseResult['candidates'] = [];
   const rejected: ProviderParseResult['rejected'] = [];
@@ -85,20 +92,31 @@ export function parseFibiRows(rows: SpreadsheetRow[]): ProviderParseResult {
     }
 
     const operationType = cellText(row[headers.get('סוג פעולה')!]);
-    const strongTransfer = STRONG_TRANSFER_PATTERN.test(
-      `${merchant} ${operationType}`,
-    );
-    const suggestedKind: TransactionKind = strongTransfer
+    const movementText = `${merchant} ${operationType}`;
+    const creditCardSettlement =
+      CREDIT_CARD_SETTLEMENT_PATTERN.test(movementText);
+    const savingsContribution =
+      SAVINGS_CONTRIBUTION_PATTERN.test(movementText);
+    const cashTransfer = CASH_TRANSFER_PATTERN.test(movementText);
+    const nonSpendingMovement =
+      creditCardSettlement || savingsContribution || cashTransfer;
+    const suggestedKind: TransactionKind = nonSpendingMovement
       ? 'transfer'
       : credit
         ? 'income'
         : 'expense';
     const reviewReasons: ImportReviewReason[] = [];
-    if (strongTransfer) pushUnique(reviewReasons, 'possible_transfer');
+    if (creditCardSettlement) {
+      pushUnique(reviewReasons, 'credit_card_settlement');
+    } else if (savingsContribution) {
+      pushUnique(reviewReasons, 'savings_contribution');
+    } else if (cashTransfer) {
+      pushUnique(reviewReasons, 'possible_transfer');
+    }
     if (credit) pushUnique(reviewReasons, 'confirm_context');
     if (
       debit &&
-      !strongTransfer &&
+      !nonSpendingMovement &&
       OUTGOING_TRANSFER_PATTERN.test(`${merchant} ${operationType}`)
     ) {
       pushUnique(reviewReasons, 'possible_transfer');
@@ -119,6 +137,11 @@ export function parseFibiRows(rows: SpreadsheetRow[]): ProviderParseResult {
       merchant,
       reference: cellText(row[headers.get('אסמכתא')!]) || undefined,
       transactionType: operationType || undefined,
+      balanceAfter:
+        balanceColumn !== undefined &&
+        typeof row[balanceColumn] === 'number'
+          ? toAgorot(row[balanceColumn] as number)
+          : undefined,
       status: 'cleared',
       suggestedKind,
       suggestedContext: reviewReasons.includes('confirm_context')

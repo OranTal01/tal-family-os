@@ -19,6 +19,7 @@ export type Classification = {
   context: 'household' | 'business';
   ownerId: 'shared' | 'oran' | 'danielle';
   isTransfer: boolean;
+  isRecurring: boolean;
   remember: boolean;
 };
 
@@ -41,6 +42,7 @@ export function ClassificationFields({
   idPrefix,
   showCategory = true,
   showTransfer = true,
+  showRecurring = false,
   showRemember = true,
 }: {
   value: Classification;
@@ -50,6 +52,7 @@ export function ClassificationFields({
   idPrefix: string;
   showCategory?: boolean;
   showTransfer?: boolean;
+  showRecurring?: boolean;
   showRemember?: boolean;
 }) {
   const contextCategories = categories.filter((c) => c.context === value.context);
@@ -87,7 +90,15 @@ export function ClassificationFields({
                 type='button'
                 role='radio'
                 aria-checked={active}
-                onClick={() => onChange({ ...value, context: option.key, categoryId: undefined })}
+                onClick={() =>
+                  onChange({
+                    ...value,
+                    context: option.key,
+                    categoryId: undefined,
+                    isRecurring:
+                      option.key === 'business' ? false : value.isRecurring,
+                  })
+                }
                 className={cn(
                   'flex min-h-9 items-center gap-1.5 rounded-md px-3 text-caption font-bold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
                   active ? 'bg-surface text-ink shadow-sm' : 'text-mut hover:text-ink-2',
@@ -121,9 +132,9 @@ export function ClassificationFields({
       </div>
 
       {showTransfer && (
-        <label className='flex items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
+        <label className='flex cursor-pointer items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
           <span className='flex flex-col'>
-            <span className='text-body font-bold text-ink'>העברה פנימית</span>
+            <span className='text-body font-bold text-ink'>העברה בין חשבונות</span>
             <span className='text-caption font-semibold text-mut'>
               תנועה בין חשבונות שלנו — לא הכנסה ולא הוצאה
             </span>
@@ -134,6 +145,7 @@ export function ClassificationFields({
               onChange({
                 ...value,
                 isTransfer: checked,
+                isRecurring: checked ? false : value.isRecurring,
                 categoryId: checked ? undefined : value.categoryId,
               })
             }
@@ -141,8 +153,25 @@ export function ClassificationFields({
         </label>
       )}
 
+      {showRecurring && value.context === 'household' && !value.isTransfer && (
+        <label className='flex cursor-pointer items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
+          <span className='flex flex-col'>
+            <span className='text-body font-bold text-ink'>הוצאה קבועה</span>
+            <span className='text-caption font-semibold text-mut'>
+              הצג את החיוב הזה בתכנון בכל חודש
+            </span>
+          </span>
+          <Switch
+            checked={value.isRecurring}
+            onCheckedChange={(checked) =>
+              onChange({ ...value, isRecurring: checked })
+            }
+          />
+        </label>
+      )}
+
       {showRemember && (
-        <label className='flex items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
+        <label className='flex cursor-pointer items-center justify-between gap-3 rounded-md bg-surface-2 px-3 py-2.5'>
           <span className='flex flex-col'>
             <span className='text-body font-bold text-ink'>זכור כלל זה</span>
             <span className='text-caption font-semibold text-mut'>

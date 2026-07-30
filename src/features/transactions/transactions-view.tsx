@@ -269,6 +269,7 @@ export function TransactionsView({
                     context: updated.context,
                     ownerId: updated.ownerId,
                     needsReview: updated.needsReview,
+                    isRecurring: updated.isRecurring,
                     tag: updated.needsReview
                       ? { label: 'לבדיקה', tone: 'warn', icon: 'error' }
                       : updated.context === 'business'
@@ -277,6 +278,12 @@ export function TransactionsView({
                             tone: 'future',
                             icon: 'storefront',
                           }
+                        : updated.isRecurring
+                          ? {
+                              label: 'קבועה',
+                              tone: 'sync',
+                              icon: 'event_repeat',
+                            }
                         : undefined,
                   }
                 : t,
@@ -316,6 +323,7 @@ function TransactionDetail({
             context: item.context,
             ownerId: (item.ownerId as Classification['ownerId']) ?? 'shared',
             isTransfer: item.kind === 'transfer',
+            isRecurring: Boolean(item.isRecurring),
             remember: false,
           }
         : null,
@@ -334,6 +342,7 @@ function TransactionDetail({
           context: value!.context,
           ownerId: value!.ownerId,
           rememberRule: value!.remember,
+          isRecurring: value!.isRecurring,
         });
 
         if (result.status === 'error') {
@@ -347,9 +356,11 @@ function TransactionDetail({
         onSave(result.transaction);
         onOpenChange(false);
         toast.success('התנועה עודכנה', {
-          description: result.ruleSaved
-            ? `נוצר כלל: "${item!.merchant}" ישויך אוטומטית בייבואים הבאים.`
-            : undefined,
+          description: result.transaction.isRecurring
+            ? 'החיוב נוסף להוצאות הקבועות ויופיע בתכנון החודשי.'
+            : result.ruleSaved
+              ? `נוצר כלל: "${item!.merchant}" ישויך אוטומטית בייבואים הבאים.`
+              : undefined,
         });
         router.refresh();
       } catch {
@@ -408,6 +419,7 @@ function TransactionDetail({
           idPrefix='txn'
           showCategory={item.kind !== 'income'}
           showTransfer={false}
+          showRecurring={item.kind === 'expense'}
           showRemember={item.kind !== 'income'}
         />
         {error && (
@@ -420,7 +432,7 @@ function TransactionDetail({
         )}
         <p className='text-caption font-semibold text-mut'>
           השינוי חל על התנועה הזו בלבד. אם תבחרו ״זכור כלל זה״, ייבואים חדשים
-          מאותו בית עסק יסווגו אוטומטית.
+          מאותו בית עסק יסווגו אוטומטית. הוצאה קבועה תופיע בתכנון בכל חודש.
         </p>
       </div>
     </ResponsiveDetail>

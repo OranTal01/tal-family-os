@@ -16,6 +16,8 @@ export type ImportCategorySuggestionSource =
 export type ImportReviewReason =
   | 'possible_duplicate'
   | 'possible_transfer'
+  | 'credit_card_settlement'
+  | 'savings_contribution'
   | 'pending'
   | 'confirm_context';
 
@@ -48,6 +50,8 @@ export type ImportCandidate = {
   description?: string;
   reference?: string;
   transactionType?: string;
+  /** Provider-reported balance immediately after this bank movement. */
+  balanceAfter?: Agorot;
   status: ImportTransactionStatus;
   suggestedKind: TransactionKind;
   suggestedContext?: Context;
@@ -120,6 +124,8 @@ export type ImportCommitActionState =
       duplicateCount: number;
       reviewCount: number;
       skippedCount: number;
+      balanceUpdated: boolean;
+      observedMovementCount: number;
     };
 
 export const initialImportActionState: ImportActionState = {

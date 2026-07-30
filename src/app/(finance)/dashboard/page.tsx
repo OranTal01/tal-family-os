@@ -13,7 +13,8 @@ import { RingsSection } from '@/features/dashboard/rings-section';
 import { formatMoney } from '@/lib/format/currency';
 import { formatMonth } from '@/lib/format/date';
 import { routes } from '@/lib/routes';
-import { getMonthOverview, resolveMonth } from '@/server/data/views';
+import { getPersistedMonthOverview } from '@/server/data/persisted-overview';
+import { resolveMonth } from '@/server/data/views';
 import type { Agorot } from '@/types/money';
 
 export const metadata: Metadata = { title: 'לוח חודשי' };
@@ -25,7 +26,7 @@ export default async function DashboardPage({
 }) {
   const { month: rawMonth } = await searchParams;
   const month = resolveMonth(rawMonth);
-  const o = await getMonthOverview(month);
+  const o = await getPersistedMonthOverview(month);
   const surplus = o.balance >= 0;
 
   return (

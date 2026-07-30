@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { formatMonth } from '@/lib/format/date';
 import { routes } from '@/lib/routes';
-import { getSplitScreen, resolveMonth } from '@/server/data/views';
+import { getPersistedSplitScreen } from '@/server/data/persisted-business';
+import { resolveMonth } from '@/server/data/views';
 import type { Agorot } from '@/types/money';
 
 export const metadata: Metadata = { title: 'בית מול עסק' };
@@ -19,7 +20,7 @@ export default async function SplitPage({
 }) {
   const { month: rawMonth } = await searchParams;
   const month = resolveMonth(rawMonth);
-  const s = await getSplitScreen(month);
+  const s = await getPersistedSplitScreen(month);
   const surplus = s.household.balance >= 0;
 
   return (

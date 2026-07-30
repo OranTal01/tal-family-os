@@ -60,7 +60,13 @@ const transactionClassificationSchema = z.object({
   context: z.enum(['household', 'business']),
   ownerId: z.enum(['shared', 'oran', 'danielle']),
   rememberRule: z.boolean(),
+  isRecurring: z.boolean().default(false),
 });
+
+const reviewedTransactionIdsSchema = z
+  .array(z.string().uuid())
+  .min(1)
+  .max(500);
 
 export type TransactionClassificationInput = z.infer<
   typeof transactionClassificationSchema
@@ -78,6 +84,7 @@ export type TransactionClassificationActionResult =
         context: 'household' | 'business';
         ownerId: TransactionClassificationInput['ownerId'];
         needsReview: boolean;
+        isRecurring: boolean;
       };
       ruleSaved: boolean;
     }
@@ -85,6 +92,10 @@ export type TransactionClassificationActionResult =
       status: 'error';
       message: string;
     };
+
+export type DismissTransactionReviewsActionResult =
+  | { status: 'success'; count: number }
+  | { status: 'error'; message: string };
 
 type ValidatedWorkbook = {
   file: File;
@@ -135,6 +146,56 @@ async function readValidatedWorkbook(
 
 function decisionKey(decision: Pick<ImportDecision, 'sourceRow' | 'fingerprint'>) {
   return `${decision.sourceRow}:${decision.fingerprint}`;
+}
+
+function importedBalanceSnapshots(preview: ImportPreview): Json[] {
+  const latestByAccount = new Map<
+    string,
+    ImportPreview['candidates'][number]
+  >();
+
+  for (const candidate of preview.candidates) {
+    if (
+      candidate.account.accountType !== 'bank' ||
+      !candidate.account.last4 ||
+      candidate.balanceAfter === undefined
+    ) {
+      continue;
+    }
+
+    const key = `${candidate.account.accountType}:${candidate.account.last4}`;
+    const current = latestByAccount.get(key);
+    if (
+      !current ||
+      candidate.dateISO > current.dateISO ||
+      (candidate.dateISO === current.dateISO &&
+        candidate.sourceRow > current.sourceRow)
+    ) {
+      latestByAccount.set(key, candidate);
+    }
+  }
+
+  return [...latestByAccount.values()].map((candidate) => ({
+    account_type: candidate.account.accountType,
+    masked_last4: candidate.account.last4!,
+    balance: candidate.balanceAfter!,
+    snapshot_date: candidate.dateISO,
+  }));
+}
+
+function observedMovementType(
+  candidate: ImportPreview['candidates'][number],
+): string {
+  if (candidate.reviewReasons.includes('credit_card_settlement')) {
+    return 'credit_card_settlement';
+  }
+  if (candidate.reviewReasons.includes('savings_contribution')) {
+    return 'savings_contribution';
+  }
+  if (/משיכת מזומן|כספומט|משיכת מזומנים/i.test(candidate.merchant)) {
+    return 'cash_movement';
+  }
+  return 'unclassified_transfer';
 }
 
 function sourceRowFromErrorMessage(message: string): number | undefined {
@@ -392,6 +453,7 @@ export async function commitTransactionImportAction(
       decision: ImportDecision;
       ownerHint: ImportOwnerHint;
     }[] = [];
+    const observedMovements: Json[] = [];
     let skippedCount = preview.stats.skipped;
 
     for (const candidate of preview.candidates) {
@@ -424,6 +486,16 @@ export async function commitTransactionImportAction(
       }
 
       if (decision.kind === 'transfer') {
+        observedMovements.push({
+          source_row: candidate.sourceRow,
+          fingerprint: candidate.fingerprint,
+          account_type: candidate.account.accountType,
+          masked_last4: candidate.account.last4 ?? null,
+          date: candidate.dateISO,
+          amount: candidate.amount,
+          merchant: candidate.merchant,
+          movement_type: observedMovementType(candidate),
+        });
         skippedCount += 1;
         continue;
       }
@@ -499,9 +571,10 @@ export async function commitTransactionImportAction(
       }),
     );
 
+    const balanceSnapshots = importedBalanceSnapshots(preview);
     const supabase = await createClient();
     const { data, error } = await supabase.rpc(
-      'commit_categorized_transaction_import',
+      'commit_categorized_transaction_import_with_balances',
       {
         p_household_id: membership.householdId,
         p_provider: preview.provider,
@@ -511,7 +584,9 @@ export async function commitTransactionImportAction(
         p_file_sha256: createHash('sha256').update(buffer).digest('hex'),
         p_parser_version: 'xlsx-v1',
         p_rows: rows,
+        p_balance_snapshots: balanceSnapshots,
         p_skipped_count: skippedCount,
+        p_observed_movements: observedMovements,
       },
     );
 
@@ -542,15 +617,34 @@ export async function commitTransactionImportAction(
       };
     }
 
+    if (
+      receipt.reused_batch &&
+      receipt.balance_snapshot_count === 0 &&
+      receipt.observed_movement_count === 0
+    ) {
+      return {
+        status: 'error',
+        message:
+          'הקובץ הזה כבר נשמר בעבר. אפשר לראות את התנועות שלו במסך התנועות.',
+      };
+    }
+
     revalidatePath('/transactions');
+    revalidatePath('/accounts');
+    revalidatePath('/dashboard');
+    revalidatePath('/assets');
     return {
       status: 'success',
-      message: `${receipt.inserted_count} תנועות נשמרו בהצלחה.`,
+      message: receipt.reused_batch
+        ? 'יתרת העו״ש ותנועות שאינן הוצאה עודכנו בקובץ שכבר יובא.'
+        : `${receipt.inserted_count} תנועות נשמרו בהצלחה.`,
       batchId: receipt.batch_id,
       insertedCount: receipt.inserted_count,
       duplicateCount: receipt.duplicate_count,
       reviewCount: receipt.review_count,
       skippedCount,
+      balanceUpdated: receipt.balance_snapshot_count > 0,
+      observedMovementCount: receipt.observed_movement_count,
     };
   } catch (error) {
     const code =
@@ -588,10 +682,13 @@ function transactionClassificationError(message: string): string {
     return 'השיוך שנבחר אינו זמין יותר. אפשר לבחור שיוך אחר ולנסות שוב.';
   }
   if (message.includes('transfer transactions')) {
-    return 'שינוי העברה פנימית דורש בחירת חשבון מקור וחשבון יעד.';
+    return 'שינוי העברה בין חשבונות דורש בחירת חשבון מקור וחשבון יעד.';
   }
   if (message.includes('income transactions')) {
     return 'לא ניתן לשייך קטגוריית הוצאה לתנועת הכנסה.';
+  }
+  if (message.includes('only expense transactions')) {
+    return 'אפשר להגדיר כהוצאה קבועה רק תנועת הוצאה.';
   }
 
   return 'לא הצלחנו לעדכן את התנועה. דבר לא השתנה ואפשר לנסות שוב.';
@@ -645,7 +742,7 @@ export async function updateTransactionClassificationAction(
 
     const supabase = await createClient();
     const { data, error } = await supabase.rpc(
-      'update_transaction_classification',
+      'update_transaction_classification_with_recurring',
       {
         p_household_id: membership.householdId,
         p_transaction_id: parsed.data.transactionId,
@@ -653,6 +750,7 @@ export async function updateTransactionClassificationAction(
         p_context: parsed.data.context,
         p_owner_person_id: ownerPersonId,
         p_remember_rule: parsed.data.rememberRule,
+        p_is_recurring: parsed.data.isRecurring,
       },
     );
 
@@ -681,6 +779,7 @@ export async function updateTransactionClassificationAction(
       '/budget',
       '/business',
       '/daily',
+      '/planning',
     ]) {
       revalidatePath(path);
     }
@@ -696,6 +795,7 @@ export async function updateTransactionClassificationAction(
         context: updated.context,
         ownerId: parsed.data.ownerId,
         needsReview: updated.needs_review,
+        isRecurring: updated.is_recurring,
       },
       ruleSaved: updated.rule_saved,
     };
@@ -709,4 +809,68 @@ export async function updateTransactionClassificationAction(
         'לא הצלחנו להכין את התנועה לשמירה. דבר לא השתנה ואפשר לנסות שוב.',
     };
   }
+}
+
+export async function dismissTransactionReviewsAction(
+  transactionIds: string[],
+): Promise<DismissTransactionReviewsActionResult> {
+  const parsed = reviewedTransactionIdsSchema.safeParse(transactionIds);
+  if (!parsed.success) {
+    return {
+      status: 'error',
+      message: 'רשימת התנועות לבדיקה אינה תקינה.',
+    };
+  }
+
+  const user = await getCurrentUser();
+  if (!user) {
+    return {
+      status: 'error',
+      message: 'החיבור לחשבון פג. יש להתנתק ולהיכנס מחדש.',
+    };
+  }
+
+  const membership = await getCurrentHouseholdMembership();
+  if (!membership || !['owner', 'member'].includes(membership.role)) {
+    return {
+      status: 'error',
+      message: 'אין לחשבון הזה הרשאה לעדכן את רשימת הבדיקה.',
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('review_items')
+    .update({
+      status: 'dismissed',
+      resolved_by: user.id,
+      resolved_at: new Date().toISOString(),
+      resolution: { decision: 'accepted_as_is' },
+    })
+    .eq('household_id', membership.householdId)
+    .eq('status', 'open')
+    .in('transaction_id', parsed.data)
+    .select('id');
+
+  if (error) {
+    console.error('Transaction review dismissal failed', {
+      code: error.code,
+    });
+    return {
+      status: 'error',
+      message:
+        'לא הצלחנו לעדכן את רשימת הבדיקה. דבר לא השתנה ואפשר לנסות שוב.',
+    };
+  }
+
+  for (const path of [
+    '/transactions/review',
+    '/transactions',
+    '/dashboard',
+    '/daily',
+  ]) {
+    revalidatePath(path);
+  }
+
+  return { status: 'success', count: data?.length ?? 0 };
 }

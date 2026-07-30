@@ -56,6 +56,19 @@ beforeEach(() => {
       };
     }
 
+    if (table === 'recurring_transactions') {
+      const result = resolvedQuery([
+        { account_id: 'account-1', name: ' צילום   לעסק ' },
+      ]);
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => result),
+          })),
+        })),
+      };
+    }
+
     const rows =
       table === 'financial_accounts'
         ? [{ id: 'account-1', name: 'כאל ••1639' }]
@@ -95,6 +108,7 @@ describe('getPersistedTransactionsScreen', () => {
         context: 'business',
         ownerId: 'danielle',
         needsReview: true,
+        isRecurring: true,
         tag: {
           label: 'לבדיקה',
           tone: 'warn',

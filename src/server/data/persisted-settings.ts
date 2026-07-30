@@ -66,7 +66,7 @@ export async function getPersistedSettingsScreen(): Promise<{
       pattern: rule.merchant_pattern,
       categoryName: rule.category_id
         ? categoryNames.get(rule.category_id) ?? 'קטגוריה שאינה פעילה'
-        : 'העברה פנימית',
+        : 'העברה בין חשבונות',
     })),
   };
 }

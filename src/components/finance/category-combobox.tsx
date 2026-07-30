@@ -79,36 +79,40 @@ export function CategoryCombobox({
               'data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
             )}
           >
-            <div className='relative border-b border-line bg-popover p-2'>
-              <SearchIcon className='pointer-events-none absolute start-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
+            <div className='relative border-b border-line bg-popover px-2 pt-2 pb-1'>
+              <SearchIcon className='pointer-events-none absolute start-4 top-[calc(50%+2px)] size-4 -translate-y-1/2 text-muted-foreground' />
               <ComboboxPrimitive.Input
                 aria-label='חיפוש קטגוריה'
                 placeholder='חיפוש קטגוריה…'
-                className='h-9 w-full rounded-md border border-input bg-background px-9 text-center text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+                dir='rtl'
+                className='h-9 w-full rounded-md border border-input bg-background ps-9 pe-3 text-start text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
               />
             </div>
 
-            <ComboboxPrimitive.Empty className='px-3 py-5 text-center text-sm font-semibold text-muted-foreground'>
+            <ComboboxPrimitive.Empty className='empty:hidden px-3 py-5 text-start text-sm font-semibold text-muted-foreground'>
               לא נמצאה קטגוריה מתאימה
             </ComboboxPrimitive.Empty>
 
-            <ComboboxPrimitive.List className='max-h-72 overflow-y-auto overscroll-contain scroll-smooth p-1 outline-none data-empty:p-0'>
+            <ComboboxPrimitive.List
+              dir='rtl'
+              className='max-h-72 overflow-y-auto overscroll-contain scroll-smooth px-1 pt-0.5 pb-1 outline-none data-empty:p-0'
+            >
               {(category: CategoryOption) => (
                 <ComboboxPrimitive.Item
                   key={category.id}
                   value={category}
                   className={cn(
-                    'relative flex w-full cursor-pointer items-center justify-center rounded-md px-9 py-2 text-center text-sm outline-none select-none',
+                    'relative flex min-h-10 w-full cursor-pointer items-center justify-start rounded-md ps-3 pe-9 py-2 text-start text-sm outline-none select-none',
                     'data-highlighted:bg-accent data-highlighted:text-accent-foreground',
                     'data-selected:font-bold',
                   )}
                 >
-                  <span className='flex items-center justify-center gap-2'>
+                  <span className='flex min-w-0 items-center justify-start gap-2'>
                     <Icon
                       name={category.icon}
-                      className='text-[16px] text-muted-foreground'
+                      className='shrink-0 text-[17px] text-muted-foreground'
                     />
-                    <span>{category.name}</span>
+                    <span className='truncate'>{category.name}</span>
                   </span>
                   <ComboboxPrimitive.ItemIndicator className='pointer-events-none absolute end-3 flex size-4 items-center justify-center'>
                     <CheckIcon className='size-4' />

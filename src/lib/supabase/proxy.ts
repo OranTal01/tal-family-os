@@ -17,8 +17,8 @@ import { resolveAuthRedirect } from './route-guard';
  * data access lives in the DAL (`getCurrentUser`/`getCurrentProfile`) backed by
  * RLS, which is checked again close to the data on every request.
  *
- * Soft no-op when the Supabase environment is not configured, so the app
- * keeps working in the mock-data phase and in environments without secrets.
+ * Soft no-op when the Supabase environment is not configured, so public routes
+ * keep working in preview environments without secrets.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

@@ -1,18 +1,22 @@
 import type { Metadata } from 'next';
 import { PageContainer, PageHeader } from '@/components/shell/page-container';
 import { Amount } from '@/components/finance/amount';
+import { EmptyState } from '@/components/finance/empty-state';
 import { Icon } from '@/components/ui/icon';
 import { formatMoney } from '@/lib/format/currency';
-import { getAssetsScreen } from '@/server/data/views';
+import { getPersistedAssetsScreen } from '@/server/data/persisted-wealth';
 
 export const metadata: Metadata = { title: 'נכסים וחיסכון' };
 
 export default async function AssetsPage() {
-  const a = await getAssetsScreen();
+  const a = await getPersistedAssetsScreen();
 
   return (
     <PageContainer>
-      <PageHeader title='נכסים וחיסכון' meta='עודכן היום · 08:00' />
+      <PageHeader
+        title='נכסים וחיסכון'
+        meta='יתרות שיובאו או הוזנו במערכת בלבד'
+      />
 
       <dl className='mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3'>
         <div className='rounded-lg border border-line bg-accent p-4 shadow-md'>
@@ -45,8 +49,15 @@ export default async function AssetsPage() {
         </div>
       </dl>
 
-      <ul className='overflow-hidden rounded-lg border border-line bg-surface shadow-sm'>
-        {a.rows.map((row) => (
+      {a.rows.length === 0 ? (
+        <EmptyState
+          icon='savings'
+          title='עדיין לא נוספו נכסים וחסכונות'
+          body='יתרת העו״ש תופיע לאחר ייבוא קובץ הבנק. פנסיה וחסכונות יופיעו לאחר שנוסיף להם יתרה אמיתית.'
+        />
+      ) : (
+        <ul className='overflow-hidden rounded-lg border border-line bg-surface shadow-sm'>
+          {a.rows.map((row) => (
           <li
             key={row.id}
             className='flex items-center gap-3 border-b border-line px-4 py-3 last:border-b-0'
@@ -77,8 +88,43 @@ export default async function AssetsPage() {
               className='shrink-0 text-body font-extrabold text-ink'
             />
           </li>
-        ))}
-      </ul>
+          ))}
+        </ul>
+      )}
+
+      {a.savingsMovements.length > 0 && (
+        <section className='mt-5 rounded-lg border border-line bg-surface p-4 shadow-sm'>
+          <h2 className='mb-1 text-subhead font-bold text-ink'>
+            הפקדות לחיסכון שזוהו
+          </h2>
+          <p className='mb-3 text-caption font-semibold text-mut'>
+            אלו הפקדות שיצאו מהעו״ש. הן אינן הוצאה שוטפת ואינן מייצגות את יתרת החיסכון.
+          </p>
+          <ul className='divide-y divide-line'>
+            {a.savingsMovements.map((movement) => (
+              <li
+                key={movement.id}
+                className='flex items-center gap-3 py-2.5'
+              >
+                <Icon name='savings' className='text-[18px] text-pos-ink' />
+                <span className='flex min-w-0 flex-1 flex-col'>
+                  <span className='truncate text-body font-bold text-ink'>
+                    {movement.name}
+                  </span>
+                  <span className='text-caption font-semibold text-mut'>
+                    {movement.dateLabel}
+                  </span>
+                </span>
+                <Amount
+                  value={movement.amount}
+                  sign='never'
+                  className='text-body font-extrabold text-ink'
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </PageContainer>
   );
 }

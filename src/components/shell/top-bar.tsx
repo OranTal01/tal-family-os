@@ -4,7 +4,10 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { Icon } from '@/components/ui/icon';
 import { MonthSelector } from '@/components/shell/month-selector';
-import { SyncStatus } from '@/components/shell/sync-status';
+import {
+  SyncStatus,
+  type SyncState,
+} from '@/components/shell/sync-status';
 import { monthScopedRoutes, routeKeyFromPathname } from '@/lib/routes';
 
 /**
@@ -12,7 +15,13 @@ import { monthScopedRoutes, routeKeyFromPathname } from '@/lib/routes';
  * sync status, and global search/notifications placeholders.
  * Mobile screens render their own compact headers instead.
  */
-export function TopBar({ syncedAgo }: { syncedAgo: string }) {
+export function TopBar({
+  syncState,
+  syncedAgo,
+}: {
+  syncState: SyncState;
+  syncedAgo: string;
+}) {
   const pathname = usePathname();
   const routeKey = routeKeyFromPathname(pathname);
   const monthScoped = routeKey ? monthScopedRoutes.includes(routeKey) : false;
@@ -26,7 +35,7 @@ export function TopBar({ syncedAgo }: { syncedAgo: string }) {
       ) : (
         <span aria-hidden />
       )}
-      <SyncStatus state='ok' detail={syncedAgo} />
+      <SyncStatus state={syncState} detail={syncedAgo} />
       <div className='flex-1' />
       <button
         type='button'

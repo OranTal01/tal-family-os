@@ -7,8 +7,78 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      account_balance_snapshots: {
+        Row: {
+          balance: number
+          created_at: string
+          financial_account_id: string
+          household_id: string
+          id: string
+          import_batch_id: string
+          snapshot_date: string
+        }
+        Insert: {
+          balance: number
+          created_at?: string
+          financial_account_id: string
+          household_id: string
+          id?: string
+          import_batch_id: string
+          snapshot_date: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          financial_account_id?: string
+          household_id?: string
+          id?: string
+          import_batch_id?: string
+          snapshot_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_balance_snapshots_financial_account_id_household_i_fkey"
+            columns: ["financial_account_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "account_balance_snapshots_import_batch_id_household_id_fkey"
+            columns: ["import_batch_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
       assets: {
         Row: {
           archived_at: string | null
@@ -1477,6 +1547,63 @@ export type Database = {
           },
         ]
       }
+      observed_financial_movements: {
+        Row: {
+          amount: number
+          created_at: string
+          financial_account_id: string
+          fingerprint: string
+          household_id: string
+          id: string
+          import_batch_id: string
+          merchant_name: string
+          movement_date: string
+          movement_type: string
+          source_row: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          financial_account_id: string
+          fingerprint: string
+          household_id: string
+          id?: string
+          import_batch_id: string
+          merchant_name: string
+          movement_date: string
+          movement_type: string
+          source_row: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          financial_account_id?: string
+          fingerprint?: string
+          household_id?: string
+          id?: string
+          import_batch_id?: string
+          merchant_name?: string
+          movement_date?: string
+          movement_type?: string
+          source_row?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "observed_financial_movements_financial_account_id_househol_fkey"
+            columns: ["financial_account_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "financial_accounts"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "observed_financial_movements_import_batch_id_household_id_fkey"
+            columns: ["import_batch_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
       people: {
         Row: {
           archived_at: string | null
@@ -1849,6 +1976,28 @@ export type Database = {
           review_count: number
         }[]
       }
+      commit_categorized_transaction_import_with_balances: {
+        Args: {
+          p_balance_snapshots: Json
+          p_display_file_name: string
+          p_file_sha256: string
+          p_household_id: string
+          p_observed_movements?: Json
+          p_parser_version: string
+          p_provider: string
+          p_rows: Json
+          p_skipped_count?: number
+        }
+        Returns: {
+          balance_snapshot_count: number
+          batch_id: string
+          duplicate_count: number
+          inserted_count: number
+          observed_movement_count: number
+          reused_batch: boolean
+          review_count: number
+        }[]
+      }
       commit_transaction_import: {
         Args: {
           p_display_file_name: string
@@ -1925,6 +2074,28 @@ export type Database = {
           category_id: string | null
           category_name: string | null
           context: Database["public"]["Enums"]["finance_context"]
+          needs_review: boolean
+          owner_person_id: string | null
+          rule_saved: boolean
+          transaction_id: string
+        }[]
+      }
+      update_transaction_classification_with_recurring: {
+        Args: {
+          p_category_id: string | null
+          p_context: Database["public"]["Enums"]["finance_context"]
+          p_household_id: string
+          p_is_recurring?: boolean
+          p_owner_person_id?: string | null
+          p_remember_rule?: boolean
+          p_transaction_id: string
+        }
+        Returns: {
+          category_icon: string | null
+          category_id: string | null
+          category_name: string | null
+          context: Database["public"]["Enums"]["finance_context"]
+          is_recurring: boolean
           needs_review: boolean
           owner_person_id: string | null
           rule_saved: boolean
@@ -2115,6 +2286,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       account_type: [

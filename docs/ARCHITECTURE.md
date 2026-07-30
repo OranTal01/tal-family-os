@@ -16,8 +16,8 @@
   `src/components/ui/icon.tsx` (`aria-hidden` by default).
 - **zod** (form/external validation), **date-fns** (date math; `Intl`/hand-rolled Hebrew
   labels for display), **Vitest + Testing Library** (jsdom).
-- **Supabase** for private authentication, profiles, household membership, and the
-  future Finance repository adapters. Finance screens are still mock-backed.
+- **Supabase** for private authentication, profiles, household membership, and every
+  Finance screen read model.
 - **read-excel-file + fflate** on the server only for bounded CAL, Isracard, and FIBI
   XLSX import previews.
 
@@ -55,8 +55,7 @@ src/
     imports/              # bounded XLSX compatibility, profiles, candidates, fingerprints
     routes.ts             # route map + nav registry (labels, icons, badges)
     utils.ts              # cn()
-  server/data/            # repository interfaces + mock implementation
-  mocks/                  # typed seed dataset (single source of all demo data)
+  server/data/            # authenticated Supabase read models + UI contracts
   types/                  # domain models (branded Agorot, entities)
   schemas/                # zod schemas for forms/external data
   test/                   # vitest setup
@@ -74,10 +73,10 @@ src/
 3. **Money is never floating point.** `Agorot = number & { brand }` integers in TS;
    `bigint` minor units in Postgres. Display formatting (rounding to shekels, ₪ prefix,
    tabular numerals, LTR embedding) happens only in `lib/format/currency.ts`.
-4. **Repository interfaces isolate persistence.** `server/data/*` exposes e.g.
-   `getMonthSnapshot(month)`, `getTransactions(filter)`, backed today by `src/mocks/`;
-   the Supabase implementation later swaps in behind the same interfaces. UI and engine
-   never import mock files directly.
+4. **Server data readers isolate persistence.** `server/data/persisted-*.ts` resolves
+   authenticated household context, reads Supabase, and maps database rows into the
+   serializable contracts in `server/data/views.ts`. UI components never query
+   Supabase directly.
 5. **Design tokens are CSS custom properties** in `globals.css` (`:root` = Light, `.dark`
    = Dark), exposed to Tailwind via `@theme inline` (e.g. `text-pos`, `bg-warn-soft`).
    Components never hardcode hex values; shadcn semantic vars are mapped onto the same

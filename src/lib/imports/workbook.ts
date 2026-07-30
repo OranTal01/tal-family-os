@@ -305,11 +305,29 @@ function buildNotices(
   }
   if (
     candidates.some((candidate) =>
+      candidate.reviewReasons.includes('credit_card_settlement'),
+    )
+  ) {
+    notices.push(
+      'חיובים חודשיים של חברות האשראי לא ייספרו כהוצאה נוספת; העסקאות המפורטות בכרטיס הן ההוצאות.',
+    );
+  }
+  if (
+    candidates.some((candidate) =>
+      candidate.reviewReasons.includes('savings_contribution'),
+    )
+  ) {
+    notices.push(
+      'הפקדות לפנסיה ולחיסכון מסומנות כתנועות שאינן הוצאה שוטפת.',
+    );
+  }
+  if (
+    candidates.some((candidate) =>
       candidate.reviewReasons.includes('possible_transfer'),
     )
   ) {
     notices.push(
-      'חיובי אשראי ומשיכות מזומן סומנו כהעברות אפשריות כדי למנוע ספירת הוצאה כפולה.',
+      'משיכות מזומן והעברות אפשריות מסומנות לבדיקה כדי שלא ייספרו בטעות כהוצאה כפולה.',
     );
   }
   return notices;

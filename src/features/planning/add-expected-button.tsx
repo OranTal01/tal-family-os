@@ -8,8 +8,8 @@ export function AddExpectedButton({ label = 'הוצאה צפויה' }: { label?:
   return (
     <Button
       onClick={() =>
-        toast('הוספת הוצאות צפויות תתאפשר עם חיבור מסד הנתונים', {
-          description: 'בגרסת ההדגמה התכנון נבנה מהנתונים לדוגמה.',
+        toast('הוספת הוצאה צפויה עדיין אינה פעילה', {
+          description: 'הנתונים שמוצגים בתכנון נשמרים במסד הנתונים.',
         })
       }
     >

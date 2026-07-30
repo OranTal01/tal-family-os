@@ -10,8 +10,8 @@ export function DepositButton({ goalName }: { goalName: string }) {
       size='sm'
       variant='outline'
       onClick={() =>
-        toast(`הפקדה ל"${goalName}" תתאפשר עם חיבור מסד הנתונים`, {
-          description: 'ההפקדות בהדגמה מגיעות מהנתונים לדוגמה.',
+        toast(`הוספת הפקדה ל"${goalName}" עדיין אינה פעילה`, {
+          description: 'הסכומים שמוצגים במסך מגיעים ממסד הנתונים בלבד.',
         })
       }
     >

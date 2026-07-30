@@ -8,7 +8,8 @@ import { TransactionRow } from '@/components/finance/transaction-row';
 import { Icon } from '@/components/ui/icon';
 import { formatMoney } from '@/lib/format/currency';
 import { formatMonth } from '@/lib/format/date';
-import { getBusinessScreen, resolveMonth } from '@/server/data/views';
+import { getPersistedBusinessScreen } from '@/server/data/persisted-business';
+import { resolveMonth } from '@/server/data/views';
 
 export const metadata: Metadata = { title: 'מבט עסק דניאל' };
 
@@ -19,7 +20,7 @@ export default async function BusinessPage({
 }) {
   const { month: rawMonth } = await searchParams;
   const month = resolveMonth(rawMonth);
-  const b = await getBusinessScreen(month);
+  const b = await getPersistedBusinessScreen(month);
 
   return (
     <PageContainer>

@@ -12,7 +12,7 @@ export function agorot(value: number): Agorot {
   return value as Agorot;
 }
 
-/** Convenience for mock data: whole shekels → agorot. */
+/** Convenience for whole shekels → agorot. */
 export function ils(shekels: number): Agorot {
   if (!Number.isSafeInteger(shekels * 100)) {
     throw new Error(`Money must resolve to integer agorot, got ₪${shekels}`);

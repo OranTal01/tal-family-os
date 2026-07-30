@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
 import { PageContainer, PageHeader } from '@/components/shell/page-container';
 import { Amount } from '@/components/finance/amount';
+import { EmptyState } from '@/components/finance/empty-state';
 import { StatusBadge } from '@/components/finance/status-badge';
 import { Icon } from '@/components/ui/icon';
-import { getInsuranceScreen } from '@/server/data/views';
+import { getPersistedInsuranceScreen } from '@/server/data/persisted-wealth';
 
 export const metadata: Metadata = { title: 'ביטוחים' };
 
 export default async function InsurancePage() {
-  const { totalPremium, policies } = await getInsuranceScreen();
+  const { totalPremium, policies } = await getPersistedInsuranceScreen();
 
   return (
     <PageContainer>
@@ -22,8 +23,15 @@ export default async function InsurancePage() {
         }
       />
 
-      <ul className='grid gap-3 sm:grid-cols-2'>
-        {policies.map((p) => (
+      {policies.length === 0 ? (
+        <EmptyState
+          icon='shield'
+          title='עדיין לא נוספו פוליסות'
+          body='לא מוצגים כאן ביטוחים לדוגמה. בהמשך נייבא דוח אמיתי מהר הביטוח או נוסיף פוליסות ידנית.'
+        />
+      ) : (
+        <ul className='grid gap-3 sm:grid-cols-2'>
+          {policies.map((p) => (
           <li
             key={p.id}
             className='flex items-center gap-3 rounded-lg border border-line bg-surface p-4 shadow-sm'
@@ -51,8 +59,9 @@ export default async function InsurancePage() {
               ₪{Math.round(p.premiumMonthly / 100)}/ח׳
             </span>
           </li>
-        ))}
-      </ul>
+          ))}
+        </ul>
+      )}
     </PageContainer>
   );
 }

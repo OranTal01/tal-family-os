@@ -1,6 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { saveBudgetItemAction } from '@/app/(finance)/budget/actions';
+import type { MonthKey } from '@/lib/format/date';
 import type { Agorot } from '@/types/money';
 import type { CategoryView } from '@/server/data/views';
 import { Amount } from '@/components/finance/amount';
@@ -15,6 +18,7 @@ import { agorot } from '@/types/money';
 import { toast } from 'sonner';
 
 type BudgetViewProps = {
+  month: MonthKey;
   household: CategoryView[];
   business: CategoryView[];
   /**
@@ -27,13 +31,19 @@ type BudgetViewProps = {
 
 /**
  * Budget screen body: summary trio, בית/עסק switch, full ring grid, and the
- * category detail sheet with budget editing (demo persistence: local state +
- * adjustment toast; Supabase wiring lands behind the same handlers).
+ * category detail sheet with budget editing.
  */
-export function BudgetView({ household, business, householdSpent }: BudgetViewProps) {
+export function BudgetView({
+  month,
+  household,
+  business,
+  householdSpent,
+}: BudgetViewProps) {
   const [context, setContext] = React.useState<'household' | 'business'>('household');
   const [categories, setCategories] = React.useState({ household, business });
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [isPending, startTransition] = React.useTransition();
+  const router = useRouter();
 
   const active = categories[context];
   const totalAllocated = agorot(active.reduce((sum, c) => sum + c.allocated, 0));
@@ -46,21 +56,40 @@ export function BudgetView({ household, business, householdSpent }: BudgetViewPr
   const selected = active.find((c) => c.id === selectedId) ?? null;
 
   function handleBudgetChange(categoryId: string, next: Agorot) {
-    setCategories((prev) => ({
-      ...prev,
-      [context]: prev[context].map((c) => {
-        if (c.id !== categoryId) return c;
-        const spentOver = Math.max(c.spent - next, 0);
-        return {
-          ...c,
-          allocated: next,
-          remaining: agorot(Math.max(next - c.spent, 0)),
-          overspend: agorot(spentOver),
-          utilization: next > 0 ? (c.spent / next) * 100 : 100,
-          status: spentOver > 0 ? 'over' : c.spent / next >= 0.8 ? 'near' : 'healthy',
-        };
-      }),
-    }));
+    startTransition(async () => {
+      const result = await saveBudgetItemAction({
+        month,
+        context,
+        categoryId,
+        amount: next,
+      });
+      if (result.status === 'error') {
+        toast.error('לא הצלחנו לשמור', { description: result.message });
+        return;
+      }
+      setCategories((prev) => ({
+        ...prev,
+        [context]: prev[context].map((c) => {
+          if (c.id !== categoryId) return c;
+          const spentOver = Math.max(c.spent - next, 0);
+          return {
+            ...c,
+            allocated: next,
+            remaining: agorot(Math.max(next - c.spent, 0)),
+            overspend: agorot(spentOver),
+            utilization: next > 0 ? (c.spent / next) * 100 : 0,
+            status:
+              spentOver > 0
+                ? 'over'
+                : next > 0 && c.spent / next >= 0.8
+                  ? 'near'
+                  : 'healthy',
+          };
+        }),
+      }));
+      toast.success('התקציב נשמר');
+      router.refresh();
+    });
   }
 
   return (
@@ -75,8 +104,8 @@ export function BudgetView({ household, business, householdSpent }: BudgetViewPr
         <Button
           variant='outline'
           onClick={() =>
-            toast('הוספת קטגוריה תתאפשר עם חיבור מסד הנתונים', {
-              description: 'בגרסת ההדגמה הקטגוריות קבועות מראש.',
+            toast('קטגוריות מוסיפים במסך ההגדרות', {
+              description: 'שם אפשר להוסיף קטגוריה לבית או לעסק.',
             })
           }
         >
@@ -130,8 +159,8 @@ export function BudgetView({ household, business, householdSpent }: BudgetViewPr
             <button
               type='button'
               onClick={() =>
-                toast('הוספת קטגוריה תתאפשר עם חיבור מסד הנתונים', {
-                  description: 'בגרסת ההדגמה הקטגוריות קבועות מראש.',
+                toast('קטגוריות מוסיפים במסך ההגדרות', {
+                  description: 'שם אפשר להוסיף קטגוריה לבית או לעסק.',
                 })
               }
               className='flex size-[96px] flex-col items-center justify-center gap-1 rounded-full border border-dashed border-mut/50 text-mut outline-none transition-colors hover:bg-muted hover:text-ink-2 focus-visible:ring-3 focus-visible:ring-ring/50'
@@ -148,6 +177,7 @@ export function BudgetView({ household, business, householdSpent }: BudgetViewPr
         open={selected !== null}
         onOpenChange={(open) => !open && setSelectedId(null)}
         onBudgetChange={handleBudgetChange}
+        saving={isPending}
       />
     </>
   );

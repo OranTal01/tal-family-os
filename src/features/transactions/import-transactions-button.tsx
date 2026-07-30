@@ -226,8 +226,16 @@ export function ImportTransactionsButton({
                 <div className='flex flex-col gap-3'>
                   <AlertBanner
                     tone='success'
-                    title='הייבוא נשמר בהצלחה'
-                    body={`${commitState.insertedCount} תנועות נוספו, ${commitState.duplicateCount} כפילויות לא נוספו, ו־${commitState.skippedCount} שורות הושמטו בבטחה.`}
+                    title={
+                      commitState.insertedCount > 0
+                        ? 'הייבוא נשמר בהצלחה'
+                        : 'נתוני הבנק עודכנו'
+                    }
+                    body={
+                      commitState.insertedCount > 0
+                        ? `${commitState.insertedCount} תנועות נוספו ו־${commitState.duplicateCount} כפילויות לא נוספו.${commitState.observedMovementCount > 0 ? ` ${commitState.observedMovementCount} תנועות שאינן הוצאה נשמרו בנפרד.` : ''}${commitState.skippedCount > commitState.observedMovementCount ? ` ${commitState.skippedCount - commitState.observedMovementCount} שורות נוספות הושמטו בבטחה.` : ''}${commitState.balanceUpdated ? ' יתרת העו״ש עודכנה מהקובץ.' : ''}`
+                        : `התנועות מהקובץ כבר היו במערכת, ולכן לא נוספו שוב.${commitState.balanceUpdated ? ' יתרת העו״ש נשמרה מהדיווח של הבנק.' : ''}${commitState.observedMovementCount > 0 ? ` ${commitState.observedMovementCount} תנועות שאינן הוצאה נשמרו בנפרד.` : ''}`
+                    }
                   />
                   {commitState.reviewCount > 0 && (
                     <AlertBanner

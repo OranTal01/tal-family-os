@@ -255,7 +255,7 @@ export type GoalContribution = {
   label: string;
 };
 
-/** The whole mock database handed out by the repository. */
+/** Complete in-memory finance snapshot used by pure calculation helpers/tests. */
 export type FinanceDb = {
   household: Household;
   business: Business;

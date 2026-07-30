@@ -54,6 +54,7 @@ describe('TransactionsView', () => {
         context: 'household',
         ownerId: 'shared',
         needsReview: false,
+        isRecurring: false,
       },
       ruleSaved: false,
     });
@@ -114,9 +115,58 @@ describe('TransactionsView', () => {
         context: 'household',
         ownerId: 'shared',
         rememberRule: false,
+        isRecurring: false,
       });
     });
     expect(mocks.refresh).toHaveBeenCalled();
+  });
+
+  it('can mark an expense as recurring from its detail sheet', async () => {
+    const user = userEvent.setup();
+    mocks.updateTransactionClassificationAction.mockResolvedValueOnce({
+      status: 'success',
+      message: 'התנועה נשמרה בהצלחה.',
+      transaction: {
+        id: 'existing',
+        categoryId: '10000000-0000-4000-8000-000000000001',
+        categoryName: 'ילדים',
+        categoryIcon: 'child_care',
+        context: 'household',
+        ownerId: 'shared',
+        needsReview: false,
+        isRecurring: true,
+      },
+      ruleSaved: false,
+    });
+
+    render(
+      <TransactionsView
+        items={[transaction('existing', 'גן של אלי')]}
+        categories={[
+          {
+            id: '10000000-0000-4000-8000-000000000001',
+            name: 'ילדים',
+            icon: 'child_care',
+            context: 'household',
+          },
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /גן של אלי/ }));
+    await user.click(screen.getByRole('switch', { name: /הוצאה קבועה/ }));
+    await user.click(screen.getByRole('button', { name: 'שמירה' }));
+
+    await waitFor(() => {
+      expect(
+        mocks.updateTransactionClassificationAction,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transactionId: 'existing',
+          isRecurring: true,
+        }),
+      );
+    });
   });
 
   it('keeps the detail sheet open and explains a save failure', async () => {
@@ -150,7 +200,9 @@ describe('TransactionsView', () => {
     ).toHaveTextContent(
       'הקטגוריה שנבחרה אינה מתאימה למשק הבית או לעסק.',
     );
-    expect(screen.getByRole('button', { name: 'שמירה' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: 'שמירה' }),
+    ).toBeInTheDocument();
     expect(mocks.refresh).not.toHaveBeenCalled();
   });
 });

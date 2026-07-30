@@ -10,12 +10,12 @@ import { TransactionRow } from '@/components/finance/transaction-row';
 import { Icon } from '@/components/ui/icon';
 import { formatMoney } from '@/lib/format/currency';
 import { routes } from '@/lib/routes';
-import { getDailyScreen } from '@/server/data/views';
+import { getPersistedDailyScreen } from '@/server/data/persisted-daily';
 
 export const metadata: Metadata = { title: 'סיכום יומי' };
 
 export default async function DailyPage() {
-  const { summary, txnItems } = await getDailyScreen();
+  const { summary, txnItems } = await getPersistedDailyScreen();
   const quiet = txnItems.length === 0;
 
   return (

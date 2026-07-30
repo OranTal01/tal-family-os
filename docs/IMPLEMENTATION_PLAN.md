@@ -54,6 +54,16 @@ Phases map to logical commits. Status legend: ☐ pending · ◐ in progress · 
       individually screenshotted — spot-checked only (dashboard + budget in both
       themes); recommend a manual pass before shipping to production
 
+## Phase 7 — Real household data ◐
+
+- ☑ Supabase-backed reads for all 14 Finance screens; fixture repository removed
+- ☑ Persistent XLSX import for FIBI, CAL, and Isracard with learned merchant rules
+- ☑ Recurring-expense classification and persisted planning rows
+- ☑ Bank-reported balance snapshots; monthly card settlements excluded from spending
+- ☑ Sample source files and local finance seed removed
+- ☐ Persist budget edits, expected-payment creation, goal contributions, and preferences
+- ☐ Add licensed Open Banking and pension/insurance data providers
+
 ## Deferred (documented decisions)
-- TanStack Query, Supabase client, Playwright e2e, charting library, real bank sync,
+- TanStack Query, Playwright e2e, charting library, real bank sync,
   notification provider, transaction splits UI, accountant role, multi-currency.

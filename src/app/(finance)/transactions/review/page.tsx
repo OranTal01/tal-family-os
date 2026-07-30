@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { PageContainer, PageHeader } from '@/components/shell/page-container';
 import { ReviewView } from '@/features/review/review-view';
-import { getReviewScreen } from '@/server/data/views';
+import { getPersistedReviewScreen } from '@/server/data/persisted-review';
 
 export const metadata: Metadata = { title: 'תנועות לבדיקה' };
 
 export default async function ReviewPage() {
-  const { items, categories } = await getReviewScreen();
+  const { items, categories } = await getPersistedReviewScreen();
 
   return (
     <PageContainer className='max-w-[860px]'>
